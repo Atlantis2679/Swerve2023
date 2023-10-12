@@ -20,9 +20,13 @@ public class FieldsTable implements LoggableInputs {
     private final String prefix;
     private final Logger logger = Logger.getInstance();
     private final List<LoggableInputs> fields = new ArrayList<>();
+    private Runnable periodicBeforeFields = null;
 
     public FieldsTable(String name) {
         Robot.registerPeriodic(() -> {
+            if(periodicBeforeFields != null) {
+                periodicBeforeFields.run();
+            }
             Logger.getInstance().processInputs(name, this);
         });
         prefix = name + "/";
@@ -44,6 +48,10 @@ public class FieldsTable implements LoggableInputs {
         for (LoggableInputs field : fields) {
             field.fromLog(table);
         }
+    }
+
+    public void setPeriodicBeforeFields(Runnable periodicRunnable) {
+        this.periodicBeforeFields = periodicRunnable;
     }
 
     public Supplier<byte[]> addRaw(
