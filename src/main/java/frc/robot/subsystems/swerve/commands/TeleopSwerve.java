@@ -4,8 +4,8 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.RobotMap;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.swerve.SwerveContants;
 
 public class TeleopSwerve extends CommandBase {
     private final Swerve swerve;
@@ -29,11 +29,18 @@ public class TeleopSwerve extends CommandBase {
 
     @Override
     public void execute() {
+        /* the x and y are swapped in the translation2d because we're using Field Coordinate system
+        * and when using this system the x from the view of the drivers is the depth of a field 
+        * while the y is horizonal to the field.
+
+        for further reading: https://docs.wpilib.org/he/stable/docs/software/advanced-controls/geometry/coordinate-systems.html
+        */
+
         swerve.drive(
                 new Translation2d(
-                    xValuesSupplier.getAsDouble() * SwerveContants.FALCON_MAX_SPEED, 
-                    yValuesSupplier.getAsDouble() * SwerveContants.FALCON_MAX_SPEED),
-                rotationValuesSupplier.getAsDouble() * SwerveContants.FALCOM_MAX_ANGULAR_VELOCITY);
+                        yValuesSupplier.getAsDouble(),
+                        xValuesSupplier.getAsDouble()).times(RobotMap.FALCON_MAX_SPEED),
+                rotationValuesSupplier.getAsDouble() * RobotMap.FALCOM_MAX_ANGULAR_VELOCITY);
     }
 
     @Override

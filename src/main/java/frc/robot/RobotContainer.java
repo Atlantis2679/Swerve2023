@@ -12,7 +12,7 @@ import frc.robot.subsystems.swerve.commands.TeleopSwerve;
 
 public class RobotContainer {
     private final Swerve swerve = new Swerve();
-    public final CommandXboxController driverController = new CommandXboxController(Constants.Controllers.DRIVER_PORT);
+    public final CommandXboxController driverController = new CommandXboxController(RobotMap.Controllers.DRIVER_PORT);
 
     public RobotContainer() {
         configureBindings();
@@ -21,10 +21,10 @@ public class RobotContainer {
     private void configureBindings() {
 
         swerve.setDefaultCommand(new TeleopSwerve(
-            swerve, 
-            () -> driverController.getLeftX(), 
-            () -> driverController.getLeftY(), 
-            () -> driverController.getRightX()));
+                swerve,
+                () -> driverController.getLeftX(),
+                () -> driverController.getLeftY(),
+                () -> driverController.getRightX()));
     }
 
     public Command getAutonomousCommand() {
