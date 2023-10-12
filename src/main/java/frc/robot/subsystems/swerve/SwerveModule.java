@@ -31,20 +31,22 @@ public class SwerveModule {
         io = new SwerveModuleIOFalcon(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
     }
 
-    public void SetDesiredState(SwerveModuleState moduleState) {
-        double demandPrcentOutput = moduleState.speedMetersPerSecond / RobotMap.FALCON_MAX_SPEED;
+    public void SetDesiredState(SwerveModuleState desiredState) {
+        double demandPrcentOutput = desiredState.speedMetersPerSecond / SwerveContants.FALCON_MAX_SPEED;
         io.setDriveSpeed(demandPrcentOutput);
 
-        double angleTics = Converstions.degreesToFalcon(moduleState.angle.getDegrees(), RobotMap.GEAR_RATIO);
-        io.setAngleMotor(angleTics);
+        if (Math.abs(desiredState.speedMetersPerSecond) > (SwerveContants.FALCON_MAX_SPEED * 0.01)) { 
+            double angleTics = Converstions.degreesToFalcon(desiredState.angle.getDegrees(), SwerveContants.GEAR_RATIO);
+            io.setAngleMotor(angleTics);
+        }
     }
 
     public void resetToAbsolute() {
         double absoluteAngle = getAbsoluteAngle();
-        
-        double absoluteFalcon = Converstions.degreesToFalcon(absoluteAngle, RobotMap.GEAR_RATIO);
 
-        io.setAngleMotorEncoder(absoluteFalcon);
+        double absoluteAngleInFalcon = Converstions.degreesToFalcon(absoluteAngle, SwerveContants.GEAR_RATIO);
+
+        io.setAngleMotorEncoder(absoluteAngleInFalcon);
     }
 
     public double getAbsoluteAngle() {
@@ -55,8 +57,8 @@ public class SwerveModule {
         return this.moduleNumber;
     }
 
-    public double getMeters() {
-        return Converstions.falconToMeters(io.driveSpeed.get(), RobotMap.WHEEL_CIRCUMFERENCE, RobotMap.GEAR_RATIO);
+    public double getDistanceMeters() {
+        return Converstions.falconToMeters(io.driveSpeed.get(), SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO);
     }
 
 }

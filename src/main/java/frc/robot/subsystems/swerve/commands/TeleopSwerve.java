@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.RobotMap;
 import frc.robot.subsystems.swerve.Swerve;
+import frc.robot.subsystems.swerve.SwerveContants;
 
 public class TeleopSwerve extends CommandBase {
     private final Swerve swerve;
@@ -39,8 +40,8 @@ public class TeleopSwerve extends CommandBase {
         swerve.drive(
                 new Translation2d(
                         yValuesSupplier.getAsDouble(),
-                        xValuesSupplier.getAsDouble()).times(RobotMap.FALCON_MAX_SPEED),
-                rotationValuesSupplier.getAsDouble() * RobotMap.FALCOM_MAX_ANGULAR_VELOCITY);
+                        xValuesSupplier.getAsDouble()).times(SwerveContants.FALCON_MAX_SPEED),
+                rotationValuesSupplier.getAsDouble() * SwerveContants.FALCOM_MAX_ANGULAR_VELOCITY);
     }
 
     @Override

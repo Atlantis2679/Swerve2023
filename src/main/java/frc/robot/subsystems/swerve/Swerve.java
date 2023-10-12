@@ -9,10 +9,10 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotMap;
-import frc.robot.subsystems.swerve.SwerveContants.Module1;
-import frc.robot.subsystems.swerve.SwerveContants.Module2;
-import frc.robot.subsystems.swerve.SwerveContants.Module3;
-import frc.robot.subsystems.swerve.SwerveContants.Module4;
+import frc.robot.RobotMap.Module0;
+import frc.robot.RobotMap.Module1;
+import frc.robot.RobotMap.Module2;
+import frc.robot.RobotMap.Module3;
 import frc.robot.subsystems.swerve.io.GyroIO;
 import frc.robot.subsystems.swerve.io.GyroIONavX;
 import frc.robot.utils.fields.FieldsTable;
@@ -23,40 +23,48 @@ public class Swerve extends SubsystemBase {
     private final GyroIO io = new GyroIONavX(fields, RobotMap.NAVX_PORT);
     private final SwerveDriveOdometry odometry;
 
-    private final SwerveModule[] swerveModules = {
+    private final SwerveModule[] modules = {
+            new SwerveModule(0, Module0.DRIVE_MOTOR_ID, Module0.ANGLE_MOTOR_ID, Module0.ENCODER_ID,
+                    SwerveContants.ANGLE_OFFSET_DEGREES_MODULE_0),
             new SwerveModule(1, Module1.DRIVE_MOTOR_ID, Module1.ANGLE_MOTOR_ID, Module1.ENCODER_ID,
-                    Module1.ANGLE_OFFSET_DEGREES),
+                    SwerveContants.ANGLE_OFFSET_DEGREES_MODULE_1),
             new SwerveModule(2, Module2.DRIVE_MOTOR_ID, Module2.ANGLE_MOTOR_ID, Module2.ENCODER_ID,
-                    Module2.ANGLE_OFFSET_DEGREES),
+                    SwerveContants.ANGLE_OFFSET_DEGREES_MODULE_2),
             new SwerveModule(3, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
-                    Module3.ANGLE_OFFSET_DEGREES),
-            new SwerveModule(4, Module4.DRIVE_MOTOR_ID, Module4.ANGLE_MOTOR_ID, Module4.ENCODER_ID,
-                    Module4.ANGLE_OFFSET_DEGREES) };
+                    SwerveContants.ANGLE_OFFSET_DEGREES_MODULE_3) };
 
-    private final SwerveDriveKinematics swerveKInematics = new SwerveDriveKinematics(
+    private final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
             SwerveContants.FRONT_RIGHT_LOCATION,
             SwerveContants.FRONT_LEFT_LOCATION,
             SwerveContants.BACK_RIGHT_LOCATION,
             SwerveContants.BACK_LEFT_LOCATION);
 
     public Swerve() {
-        resetToAbsolute();
+        resetModulesToAbsolute();
 
-        odometry = new SwerveDriveOdometry(swerveKInematics, getRotation2d(), getModulesPositions());
+        odometry = new SwerveDriveOdometry(swerveKinematics, getRotation2d(), getModulesPositions());
     }
 
-    public void drive(Translation2d translation, double rotation) {
-        SwerveModuleState[] swerveModuleStates = swerveKInematics.toSwerveModuleStates(
-                ChassisSpeeds.fromFieldRelativeSpeeds(
-                        translation.getX(),
-                        translation.getY(),
-                        rotation,
-                        getRotation2d()));
+    @Override
+    public void periodic() {
+        odometry.update(getRotation2d(), getModulesPositions());
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, RobotMap.FALCON_MAX_SPEED);
+        fields.recordOutput("Odometry", odometry.getPoseMeters());
+    }
 
-        for (SwerveModule module : swerveModules) {
-            module.SetDesiredState(swerveModuleStates[module.getModuleNumber() - 1]);
+    public void drive(Translation2d translation, double angularVelocity) {
+        ChassisSpeeds desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                translation.getX(),
+                translation.getY(),
+                angularVelocity,
+                getRotation2d());
+
+        SwerveModuleState[] swerveModuleStates = swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.FALCON_MAX_SPEED);
+
+        for (SwerveModule module : modules) {
+            module.SetDesiredState(swerveModuleStates[module.getModuleNumber()]);
         }
     }
 
@@ -64,8 +72,8 @@ public class Swerve extends SubsystemBase {
         return io.yaw.get();
     }
 
-    public void resetToAbsolute() {
-        for (SwerveModule module : swerveModules) {
+    public void resetModulesToAbsolute() {
+        for (SwerveModule module : modules) {
             module.resetToAbsolute();
         }
     }
@@ -77,19 +85,12 @@ public class Swerve extends SubsystemBase {
     public SwerveModulePosition[] getModulesPositions() {
         SwerveModulePosition[] modulePosition = new SwerveModulePosition[4];
 
-        for (SwerveModule module : swerveModules) {
-            modulePosition[module.getModuleNumber() - 1] = new SwerveModulePosition(
-                    module.getMeters(),
+        for (SwerveModule module : modules) {
+            modulePosition[module.getModuleNumber()] = new SwerveModulePosition(
+                    module.getDistanceMeters(),
                     getRotation2d());
         }
 
         return modulePosition;
-    }
-
-    @Override
-    public void periodic() {
-        odometry.update(getRotation2d(), getModulesPositions());
-
-        fields.recordOutput("Odometry", odometry.getPoseMeters());
     }
 }
