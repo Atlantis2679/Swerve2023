@@ -32,24 +32,24 @@ public class Converstions {
         return sensorCounts;
     }
 
-    public static double falconToMPS(double velocitycounts, double wheel_circumference, double gearRatio) {
+    public static double falconToMPS(double velocitycounts, double wheelCircumference, double gearRatio) {
         double wheelRPM = falconToRPM(velocitycounts, gearRatio);
-        double wheelMPS = (wheelRPM * wheel_circumference) / 60;
+        double wheelMPS = (wheelRPM * wheelCircumference) / 60;
         return wheelMPS;
     }
 
-    public static double MPSToFalcon(double velocity, double wheel_circumference, double gearRatio) {
-        double wheelRPM = ((velocity * 60) / wheel_circumference);
+    public static double MPSToFalcon(double velocity, double wheelCircumference, double gearRatio) {
+        double wheelRPM = ((velocity * 60) / wheelCircumference);
         double wheelVelocity = RPMToFalcon(wheelRPM, gearRatio);
         return wheelVelocity;
     }
 
-    public static double falconToMeters(double positionCounts, double wheel_circumference, double gearRatio) {
-        return positionCounts * (wheel_circumference / (gearRatio * COUNTS_PER_REV_FALCON));
+    public static double falconToMeters(double positionCounts, double wheelCircumference, double gearRatio) {
+        return positionCounts * (wheelCircumference / (gearRatio * COUNTS_PER_REV_FALCON));
     }
 
-    public static double MetersToFalcon(double meters, double wheel_circumference, double gearRatio) {
-        return meters / (wheel_circumference / (gearRatio * COUNTS_PER_REV_FALCON));
+    public static double MetersToFalcon(double meters, double wheelCircumference, double gearRatio) {
+        return meters / (wheelCircumference / (gearRatio * COUNTS_PER_REV_FALCON));
     }
 
 }

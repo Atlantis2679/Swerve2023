@@ -14,9 +14,9 @@ public class SwerveContants {
     public final static Translation2d BACK_RIGHT_LOCATION = new Translation2d(0, 0);
     public final static Translation2d BACK_LEFT_LOCATION = new Translation2d(0, 0);
 
-    public final static double ANGLE_OFFSET_DEGREES_MODULE_0 = 0;
-    public final static double ANGLE_OFFSET_DEGREES_MODULE_1 = 0;
-    public final static double ANGLE_OFFSET_DEGREES_MODULE_2 = 0;
-    public final static double ANGLE_OFFSET_DEGREES_MODULE_3 = 0;
+    public final static double MODULE_0_ANGLE_OFFSET_DEGREES = 0;
+    public final static double MODULE_1_ANGLE_OFFSET_DEGREES = 0;
+    public final static double MODULE_2_ANGLE_OFFSET_DEGREES = 0;
+    public final static double MODULE_3_ANGLE_OFFSET_DEGREES = 0;
 
 }

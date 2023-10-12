@@ -25,13 +25,13 @@ public class Swerve extends SubsystemBase {
 
     private final SwerveModule[] modules = {
             new SwerveModule(0, Module0.DRIVE_MOTOR_ID, Module0.ANGLE_MOTOR_ID, Module0.ENCODER_ID,
-                    SwerveContants.ANGLE_OFFSET_DEGREES_MODULE_0),
+                    SwerveContants.MODULE_0_ANGLE_OFFSET_DEGREES),
             new SwerveModule(1, Module1.DRIVE_MOTOR_ID, Module1.ANGLE_MOTOR_ID, Module1.ENCODER_ID,
-                    SwerveContants.ANGLE_OFFSET_DEGREES_MODULE_1),
+                    SwerveContants.MODULE_1_ANGLE_OFFSET_DEGREES),
             new SwerveModule(2, Module2.DRIVE_MOTOR_ID, Module2.ANGLE_MOTOR_ID, Module2.ENCODER_ID,
-                    SwerveContants.ANGLE_OFFSET_DEGREES_MODULE_2),
+                    SwerveContants.MODULE_2_ANGLE_OFFSET_DEGREES),
             new SwerveModule(3, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
-                    SwerveContants.ANGLE_OFFSET_DEGREES_MODULE_3) };
+                    SwerveContants.MODULE_3_ANGLE_OFFSET_DEGREES) };
 
     private final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
             SwerveContants.FRONT_RIGHT_LOCATION,
