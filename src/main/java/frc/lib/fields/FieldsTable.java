@@ -1,4 +1,4 @@
-package frc.robot.utils.fields;
+package frc.lib.fields;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +13,19 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+
+import frc.lib.fields.types.BooleanArrayField;
+import frc.lib.fields.types.BooleanField;
+import frc.lib.fields.types.DoubleArrayField;
+import frc.lib.fields.types.DoubleField;
+import frc.lib.fields.types.FloatArrayField;
+import frc.lib.fields.types.FloatField;
+import frc.lib.fields.types.IntegerArrayField;
+import frc.lib.fields.types.IntegerField;
+import frc.lib.fields.types.RawField;
+import frc.lib.fields.types.StringArrayField;
+import frc.lib.fields.types.StringField;
 import frc.robot.Robot;
-import frc.robot.utils.fields.types.*;
 
 public class FieldsTable implements LoggableInputs {
     private final String prefix;
@@ -24,7 +35,7 @@ public class FieldsTable implements LoggableInputs {
 
     public FieldsTable(String name) {
         Robot.registerPeriodic(() -> {
-            if(periodicBeforeFields != null) {
+            if (periodicBeforeFields != null && !Logger.getInstance().hasReplaySource()) {
                 periodicBeforeFields.run();
             }
             Logger.getInstance().processInputs(name, this);
@@ -142,7 +153,7 @@ public class FieldsTable implements LoggableInputs {
     }
 
     public Supplier<boolean[]> addBooleanArray(String name, Supplier<boolean[]> valueSupplier) {
-        return addBooleanArray(name, valueSupplier, new boolean[]{});
+        return addBooleanArray(name, valueSupplier, new boolean[] {});
     }
 
     public Supplier<long[]> addIntegerArray(
@@ -155,7 +166,7 @@ public class FieldsTable implements LoggableInputs {
     }
 
     public Supplier<long[]> addIntegerArray(String name, Supplier<long[]> valueSupplier) {
-        return addIntegerArray(name, valueSupplier, new long[]{});
+        return addIntegerArray(name, valueSupplier, new long[] {});
     }
 
     public Supplier<float[]> addFloatArray(
@@ -168,7 +179,7 @@ public class FieldsTable implements LoggableInputs {
     }
 
     public Supplier<float[]> addFloatArray(String name, Supplier<float[]> valueSupplier) {
-        return addFloatArray(name, valueSupplier, new float[]{});
+        return addFloatArray(name, valueSupplier, new float[] {});
     }
 
     public Supplier<double[]> addDoubleArray(
@@ -181,7 +192,7 @@ public class FieldsTable implements LoggableInputs {
     }
 
     public Supplier<double[]> addDoubleArray(String name, Supplier<double[]> valueSupplier) {
-        return addDoubleArray(name, valueSupplier, new double[]{});
+        return addDoubleArray(name, valueSupplier, new double[] {});
     }
 
     public Supplier<String[]> addStringArray(
@@ -194,7 +205,7 @@ public class FieldsTable implements LoggableInputs {
     }
 
     public Supplier<String[]> addStringArray(String name, Supplier<String[]> valueSupplier) {
-        return addStringArray(name, valueSupplier, new String[]{});
+        return addStringArray(name, valueSupplier, new String[] {});
     }
 
     public void recordOutput(String name, byte[] value) {

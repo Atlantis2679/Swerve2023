@@ -3,7 +3,7 @@ package frc.robot.subsystems.swerve.io;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SerialPort;
-import frc.robot.utils.fields.FieldsTable;
+import frc.lib.fields.FieldsTable;
 
 public class GyroIONavX extends GyroIO{
     private final AHRS navX;

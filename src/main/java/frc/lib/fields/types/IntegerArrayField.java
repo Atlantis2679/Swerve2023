@@ -1,10 +1,10 @@
-package frc.robot.utils.fields.types;
+package frc.lib.fields.types;
 
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.LogTable;
 
-import frc.robot.utils.fields.FieldBase;
+import frc.lib.fields.FieldBase;
 
 public class IntegerArrayField extends FieldBase<long[]> {
     public IntegerArrayField(String key, Supplier<long[]> valueSupplier, long[] defaultValue) {

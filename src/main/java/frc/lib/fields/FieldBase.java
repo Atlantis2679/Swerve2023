@@ -1,4 +1,4 @@
-package frc.robot.utils.fields;
+package frc.lib.fields;
 
 import java.util.function.Supplier;
 
