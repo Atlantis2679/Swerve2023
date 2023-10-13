@@ -6,14 +6,14 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
 
-import frc.lib.fields.FieldsTable;
+import frc.lib.logfields.LogFieldsTable;
 
 public class SwerveModuleIOFalcon extends SwerveModuleIO {
     private final TalonFX driveMotor;
     private final TalonFX angleMotor;
     private final CANCoder canCoder;
 
-    public SwerveModuleIOFalcon(FieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
+    public SwerveModuleIOFalcon(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
 
         driveMotor = new TalonFX(driveMotorID);
