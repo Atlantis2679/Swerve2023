@@ -1,4 +1,4 @@
-package frc.robot.utils.fields;
+package frc.lib.fields;
 
 public abstract class IOBase {
     protected final FieldsTable fields;

@@ -2,8 +2,8 @@ package frc.robot.subsystems.swerve.io;
 
 import java.util.function.Supplier;
 
-import frc.robot.utils.fields.FieldsTable;
-import frc.robot.utils.fields.IOBase;
+import frc.lib.fields.FieldsTable;
+import frc.lib.fields.IOBase;
 
 public abstract class SwerveModuleIO extends IOBase{
     public final Supplier<Double> absoluteAngle = fields.addDouble("absoluteAngle", this::getAbsoluteAngle);

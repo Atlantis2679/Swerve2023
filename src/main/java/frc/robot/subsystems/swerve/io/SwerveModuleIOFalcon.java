@@ -6,7 +6,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
 
-import frc.robot.utils.fields.FieldsTable;
+import frc.lib.fields.FieldsTable;
 
 public class SwerveModuleIOFalcon extends SwerveModuleIO {
     private final TalonFX driveMotor;

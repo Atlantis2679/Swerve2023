@@ -15,7 +15,7 @@ import frc.robot.RobotMap.Module2;
 import frc.robot.RobotMap.Module3;
 import frc.robot.subsystems.swerve.io.GyroIO;
 import frc.robot.subsystems.swerve.io.GyroIONavX;
-import frc.robot.utils.fields.FieldsTable;
+import frc.lib.fields.FieldsTable;
 
 public class Swerve extends SubsystemBase {
 
