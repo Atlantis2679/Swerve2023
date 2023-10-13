@@ -4,12 +4,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.subsystems.swerve.io.SwerveModuleIO;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOFalcon;
-import frc.lib.fields.FieldsTable;
+import frc.lib.logfields.LogFieldsTable;
 
 public class SwerveModule {
     private final int moduleNumber;
 
-    private final FieldsTable fields;
+    private final LogFieldsTable fields;
     private final SwerveModuleIO io;
 
     private final int driveMotorID;
@@ -26,7 +26,7 @@ public class SwerveModule {
         this.encoderID = encoderID;
         this.angleOffSet = new Rotation2d(Math.toRadians(angleOffSetDegrees));
 
-        fields = new FieldsTable("Swerve Module " + this.moduleNumber);
+        fields = new LogFieldsTable("Swerve Module " + this.moduleNumber);
         io = new SwerveModuleIOFalcon(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
     }
 
