@@ -64,7 +64,7 @@ public class Swerve extends SubsystemBase {
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.FALCON_MAX_SPEED);
 
         for (SwerveModule module : modules) {
-            module.SetDesiredState(swerveModuleStates[module.getModuleNumber()]);
+            module.setDesiredState(swerveModuleStates[module.getModuleNumber()]);
         }
     }
 

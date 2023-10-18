@@ -40,6 +40,11 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     }
 
     @Override
+    protected double getIntegratedAngle() {
+        return angleMotor.getSelectedSensorPosition();
+    }
+
+    @Override
     public void setDriveSpeed(double demandPrcentOutput) {
         driveMotor.set(ControlMode.PercentOutput, demandPrcentOutput);
     }

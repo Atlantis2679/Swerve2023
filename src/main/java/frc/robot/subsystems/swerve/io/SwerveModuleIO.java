@@ -7,6 +7,7 @@ import frc.robot.utils.fields.IOBase;
 
 public abstract class SwerveModuleIO extends IOBase{
     public final Supplier<Double> absoluteAngle = fields.addDouble("absoluteAngle", this::getAbsoluteAngle);
+    public final Supplier<Double> integratedAngle = fields.addDouble("absoluteAngle", this::getIntegratedAngle);
     public final Supplier<Double> driveSpeed = fields.addDouble("driveSpeed", this::getDriveSpeed);
     
     public SwerveModuleIO(FieldsTable fieldsTable) {
@@ -18,6 +19,8 @@ public abstract class SwerveModuleIO extends IOBase{
     protected abstract double getAbsoluteAngle();
 
     protected abstract double getDriveSpeed();
+
+    protected abstract double getIntegratedAngle();
 
     // Outputs
 
