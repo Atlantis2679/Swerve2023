@@ -40,7 +40,7 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     }
 
     @Override
-    protected double getIntegratedAngle() {
+    protected double getIntegratedEncoderAngle() {
         return angleMotor.getSelectedSensorPosition();
     }
 

@@ -33,7 +33,7 @@ public class SwerveModule {
     }
 
     public void setDesiredState(SwerveModuleState desiredState) {
-        desiredState = optimize(desiredState, new Rotation2d(Math.toRadians(getCurrentIntegratedAngle())));
+        desiredState = optimize(desiredState, new Rotation2d(Math.toRadians(getIntegratedEncoderAngle())));
 
         double demandPrcentOutput = desiredState.speedMetersPerSecond / SwerveContants.FALCON_MAX_SPEED;
         io.setDriveSpeed(demandPrcentOutput);
@@ -64,15 +64,15 @@ public class SwerveModule {
         return Converstions.falconToMeters(io.driveSpeed.get(), SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO);
     }
 
-    public double getCurrentIntegratedAngle() {
-        return Converstions.falconToDegrees(io.integratedAngle.get(), SwerveContants.GEAR_RATIO);
+    public double getIntegratedEncoderAngle() {
+        return Converstions.falconToDegrees(io.integratedEncoderAngle.get(), SwerveContants.GEAR_RATIO);
     }
 
     public double placeInAppropriateScope(double currentAngle, double targetAngle) {
         double lowerOffset = currentAngle % 360;
 
-        double lowerBound = lowerOffset >= 0 ? currentAngle - lowerOffset : currentAngle + lowerOffset;
-        double upperBound = lowerOffset >= 0 ?  currentAngle + (360 - lowerOffset) : currentAngle - (360 - lowerOffset);
+        double lowerBound = lowerOffset >= 0 ? currentAngle - lowerOffset : currentAngle - (360 + lowerOffset);
+        double upperBound = lowerOffset >= 0 ?  currentAngle + (360 - lowerOffset) : currentAngle - lowerOffset;
 
         while (targetAngle < lowerBound) {
             targetAngle += 360;
@@ -96,9 +96,10 @@ public class SwerveModule {
         double targetSpeed = desiredState.speedMetersPerSecond;
 
         double delta = targetAngle - currentAngle.getDegrees();
+
         if (Math.abs(delta) > 90){
             targetSpeed = -targetSpeed;
-            targetAngle = delta > 90 ? (targetAngle -= 180) : (targetAngle += 180);
+            targetAngle = delta > 0 ? (targetAngle - 180) : (targetAngle + 180);
         }
 
         return new SwerveModuleState(targetSpeed, Rotation2d.fromDegrees(targetAngle));
