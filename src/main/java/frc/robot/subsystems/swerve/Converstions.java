@@ -20,6 +20,10 @@ public class Converstions {
         return degrees / (360.0 / (gearRatio * COUNTS_PER_REV_FALCON));
     }
 
+    public static double RPMToDegrees(double degrees, double gearRatio) {
+        return falconToDegrees(RPMToDegrees(degrees, gearRatio), gearRatio);
+    }
+
     public static double falconToRPM(double velocityCounts, double gearRatio) {
         double motorRPM = velocityCounts * (600.0 / COUNTS_PER_REV_CANCODER);
         double mechRPM = motorRPM / gearRatio;

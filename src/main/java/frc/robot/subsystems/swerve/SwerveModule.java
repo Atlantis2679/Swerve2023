@@ -2,13 +2,15 @@ package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.Constants;
 import frc.robot.RobotMap;
 import frc.robot.subsystems.swerve.io.SwerveModuleIO;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOFalcon;
+import frc.robot.subsystems.swerve.io.SwerveModuleIOSim;
 import frc.robot.utils.fields.FieldsTable;
 
 public class SwerveModule {
-    
+
     private final int moduleNumber;
 
     private final FieldsTable fields;
@@ -20,7 +22,7 @@ public class SwerveModule {
     private final Rotation2d angleOffSet;
 
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-            double angleOffSetDegrees) {
+            double angleOffSetDegrees, boolean isSimulation) {
 
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
@@ -29,7 +31,11 @@ public class SwerveModule {
         this.angleOffSet = new Rotation2d(Math.toRadians(angleOffSetDegrees));
 
         fields = new FieldsTable("Swerve Module " + this.moduleNumber);
-        io = new SwerveModuleIOFalcon(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
+
+        if (isSimulation)
+            io = new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
+        else
+            io = new SwerveModuleIOFalcon(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
     }
 
     public void setDesiredState(SwerveModuleState desiredState) {
@@ -38,7 +44,7 @@ public class SwerveModule {
         double demandPrcentOutput = desiredState.speedMetersPerSecond / SwerveContants.FALCON_MAX_SPEED;
         io.setDriveSpeed(demandPrcentOutput);
 
-        if (Math.abs(desiredState.speedMetersPerSecond) > (SwerveContants.FALCON_MAX_SPEED * 0.01)) { 
+        if (Math.abs(desiredState.speedMetersPerSecond) > (SwerveContants.FALCON_MAX_SPEED * 0.01)) {
             double angleTics = Converstions.degreesToFalcon(desiredState.angle.getDegrees(), SwerveContants.GEAR_RATIO);
             io.setAngleMotor(angleTics);
         }
@@ -61,7 +67,8 @@ public class SwerveModule {
     }
 
     public double getDistanceMeters() {
-        return Converstions.falconToMeters(io.driveSpeed.get(), SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO);
+        return Converstions.falconToMeters(io.driveSpeed.get(), SwerveContants.WHEEL_CIRCUMFERENCE,
+                SwerveContants.GEAR_RATIO);
     }
 
     public double getIntegratedEncoderAngle() {
@@ -72,7 +79,7 @@ public class SwerveModule {
         double lowerOffset = currentAngle % 360;
 
         double lowerBound = lowerOffset >= 0 ? currentAngle - lowerOffset : currentAngle - (360 + lowerOffset);
-        double upperBound = lowerOffset >= 0 ?  currentAngle + (360 - lowerOffset) : currentAngle - lowerOffset;
+        double upperBound = lowerOffset >= 0 ? currentAngle + (360 - lowerOffset) : currentAngle - lowerOffset;
 
         while (targetAngle < lowerBound) {
             targetAngle += 360;
@@ -80,11 +87,10 @@ public class SwerveModule {
         while (targetAngle > upperBound) {
             targetAngle -= 360;
         }
-        
+
         if (targetAngle - currentAngle > 180) {
             targetAngle -= 360;
-        } 
-        else if (targetAngle - currentAngle < -180) {
+        } else if (targetAngle - currentAngle < -180) {
             targetAngle += 360;
         }
 
@@ -97,7 +103,7 @@ public class SwerveModule {
 
         double delta = targetAngle - currentAngle.getDegrees();
 
-        if (Math.abs(delta) > 90){
+        if (Math.abs(delta) > 90) {
             targetSpeed = -targetSpeed;
             targetAngle = delta > 0 ? (targetAngle - 180) : (targetAngle + 180);
         }
