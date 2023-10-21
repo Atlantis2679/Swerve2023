@@ -111,4 +111,8 @@ public class SwerveModule {
         return new SwerveModuleState(targetSpeed, Rotation2d.fromDegrees(targetAngle));
     }
 
+    public SwerveModuleState getModuleState(Rotation2d currentAngle) {
+        return new SwerveModuleState(Converstions.falconToMPS(io.driveSpeed.get(), SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO), currentAngle);
+    }
+
 }

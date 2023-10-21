@@ -51,6 +51,9 @@ public class Swerve extends SubsystemBase {
         odometry.update(getRotation2d(), getModulesPositions());
 
         fields.recordOutput("Odometry", odometry.getPoseMeters());
+        fields.recordOutput("Module States", modules[0].getModuleState(getRotation2d()),
+                modules[1].getModuleState(getRotation2d()), modules[2].getModuleState(getRotation2d()),
+                modules[3].getModuleState(getRotation2d()));
     }
 
     public void drive(Translation2d translation, double angularVelocity) {

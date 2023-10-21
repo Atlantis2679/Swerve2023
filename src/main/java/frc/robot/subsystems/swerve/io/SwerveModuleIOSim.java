@@ -18,7 +18,10 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
 
         driveMotor = new FlywheelSim(DCMotor.getFalcon500(1), 6.75, 0.025);
         angleMotor = new FlywheelSim(DCMotor.getFalcon500(1), 12.8, 0.004);
+    }
 
+    @Override
+    public void periodicBeforeFields() {
         double angleDiffRad = angleMotor.getAngularVelocityRadPerSec() * 0.02;
         encoderAbsolueDegreesSim += Math.toDegrees(angleDiffRad);
         encoderIntegratedDegreesSim = (encoderIntegratedDegreesSim + Math.toDegrees(angleDiffRad)) % 360;
@@ -34,7 +37,6 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
 
     @Override
     protected double getDriveSpeed() {
-        System.out.println(driveMotor.getAngularVelocityRPM());
         return Converstions.RPMToFalcon(driveMotor.getAngularVelocityRPM(), 6.75);
     }
 
@@ -50,8 +52,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
 
     @Override
     public void setAngleMotor(double angleTics) {
-        angleMotor.setInputVoltage(angleTics * 12);
-        // need to correct the calculation
+        angleMotor.setInputVoltage((angleTics * 12) / 2048);
     }
 
     @Override
