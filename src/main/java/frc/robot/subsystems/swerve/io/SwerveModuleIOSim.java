@@ -2,9 +2,13 @@ package frc.robot.subsystems.swerve.io;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.robot.subsystems.swerve.Converstions;
+import frc.robot.subsystems.swerve.SwerveContants;
 import frc.robot.utils.fields.FieldsTable;
 
 public class SwerveModuleIOSim extends SwerveModuleIO {
@@ -12,47 +16,66 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     private final FlywheelSim angleMotor;
     private double encoderIntegratedDegreesSim = 0;
     private double encoderAbsolueDegreesSim = 0;
+    private double distanceMeters = 0;
+    private final PIDController pidControllerAngle = new PIDController(1, 0, 0);
 
     public SwerveModuleIOSim(FieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
 
-        driveMotor = new FlywheelSim(DCMotor.getFalcon500(1), 6.75, 0.025);
-        angleMotor = new FlywheelSim(DCMotor.getFalcon500(1), 12.8, 0.004);
+        driveMotor = new FlywheelSim(DCMotor.getFalcon500(1), SwerveContants.GEAR_RATIO_DRIVE, 0.025);
+        angleMotor = new FlywheelSim(DCMotor.getFalcon500(1), SwerveContants.GEAR_RATIO_ANGLE, 0.004);
     }
 
     @Override
     public void periodicBeforeFields() {
+        fields.recordOutput("angular velucity rad per sec", angleMotor.getAngularVelocityRadPerSec());
+        fields.recordOutput("MPS drive", driveMotor.getAngularVelocityRPM() * SwerveContants.WHEEL_CIRCUMFERENCE);
+
         double angleDiffRad = angleMotor.getAngularVelocityRadPerSec() * 0.02;
-        encoderAbsolueDegreesSim += Math.toDegrees(angleDiffRad);
-        encoderIntegratedDegreesSim = (encoderIntegratedDegreesSim + Math.toDegrees(angleDiffRad)) % 360;
+        encoderIntegratedDegreesSim += Math.toDegrees(angleDiffRad);
+        encoderAbsolueDegreesSim = encoderIntegratedDegreesSim % 360;
 
         driveMotor.update(0.02);
         angleMotor.update(0.02);
+
+        double angleDiffDistance = driveMotor.getAngularVelocityRPM() * 0.02;
+        distanceMeters += angleDiffDistance * SwerveContants.WHEEL_CIRCUMFERENCE;
+
+        double calculate = (pidControllerAngle.calculate(getIntegratedEncoderDegrees()));
+        angleMotor.setInputVoltage((calculate * 12) / 360);
     }
 
     @Override 
-    protected double getAbsoluteAngle() {
+    protected double getAbsoluteAngleDegrees() {
         return encoderAbsolueDegreesSim;
     }
 
     @Override
-    protected double getDriveSpeed() {
-        return Converstions.RPMToFalcon(driveMotor.getAngularVelocityRPM(), 6.75);
+    protected double getDriveSpeedMPS() {
+        return Converstions.falconToMPS(Converstions.RPMToFalcon(driveMotor.getAngularVelocityRPM(), SwerveContants.GEAR_RATIO_DRIVE),
+                     SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO_DRIVE);
     }
 
     @Override
-    protected double getIntegratedEncoderAngle() {
+    protected double getIntegratedEncoderDegrees() {
         return encoderIntegratedDegreesSim;
     }
 
     @Override
-    public void setDriveSpeed(double demandPrcentOutput) {
-        driveMotor.setInputVoltage(demandPrcentOutput * 12);
+    protected double getDriveDistanceMeters() {
+        return distanceMeters;
     }
 
     @Override
-    public void setAngleMotor(double angleTics) {
-        angleMotor.setInputVoltage((angleTics * 12) / 2048);
+    public void setDriveSpeed(double demandPrcentOutput) {
+        demandPrcentOutput = MathUtil.clamp(demandPrcentOutput, -1, 1);
+        driveMotor.setInputVoltage(demandPrcentOutput * 12);
+        fields.recordOutput("voltage drive motor", demandPrcentOutput * 12);
+    }
+
+    @Override
+    public void setAngleMotor(double degrees) {
+        pidControllerAngle.setSetpoint(degrees);
     }
 
     @Override

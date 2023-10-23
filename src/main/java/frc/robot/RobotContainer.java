@@ -14,7 +14,7 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.commands.TeleopSwerve;
 
 public class RobotContainer {
-    private final static Swerve swerve = new Swerve();
+    private final static Swerve swerve = new Swerve(Robot.isSimulation());
     // public final static CommandXboxController driverController = new CommandXboxController(RobotMap.Controllers.DRIVER_PORT);
     public final static Joystick driverController = new Joystick(0);
 

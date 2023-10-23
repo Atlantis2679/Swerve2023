@@ -21,18 +21,19 @@ import frc.robot.utils.fields.FieldsTable;
 public class Swerve extends SubsystemBase {
 
     private final FieldsTable fields = new FieldsTable(getName());
-    private final GyroIO io = new GyroIONavX(fields, RobotMap.NAVX_PORT);
+    private final GyroIO io = new GyroIONavX(fields, RobotMap.NAVX_PORT);;
+
     private final SwerveDriveOdometry odometry;
 
     private final SwerveModule[] modules = {
             new SwerveModule(0, Module0.DRIVE_MOTOR_ID, Module0.ANGLE_MOTOR_ID, Module0.ENCODER_ID,
-                    SwerveContants.MODULE_0_ANGLE_OFFSET_DEGREES, Robot.isSimulation()),
+                    SwerveContants.MODULE_0_ANGLE_OFFSET_DEGREES),
             new SwerveModule(1, Module1.DRIVE_MOTOR_ID, Module1.ANGLE_MOTOR_ID, Module1.ENCODER_ID,
-                    SwerveContants.MODULE_1_ANGLE_OFFSET_DEGREES, Robot.isSimulation()),
+                    SwerveContants.MODULE_1_ANGLE_OFFSET_DEGREES),
             new SwerveModule(2, Module2.DRIVE_MOTOR_ID, Module2.ANGLE_MOTOR_ID, Module2.ENCODER_ID,
-                    SwerveContants.MODULE_2_ANGLE_OFFSET_DEGREES, Robot.isSimulation()),
+                    SwerveContants.MODULE_2_ANGLE_OFFSET_DEGREES),
             new SwerveModule(3, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
-                    SwerveContants.MODULE_3_ANGLE_OFFSET_DEGREES, Robot.isSimulation()) };
+                    SwerveContants.MODULE_3_ANGLE_OFFSET_DEGREES) };
 
     private final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
             SwerveContants.FRONT_RIGHT_LOCATION,
@@ -40,7 +41,7 @@ public class Swerve extends SubsystemBase {
             SwerveContants.BACK_RIGHT_LOCATION,
             SwerveContants.BACK_LEFT_LOCATION);
 
-    public Swerve() {
+    public Swerve(boolean isSimulation) {
         resetModulesToAbsolute();
 
         odometry = new SwerveDriveOdometry(swerveKinematics, getRotation2d(), getModulesPositions());
@@ -51,9 +52,9 @@ public class Swerve extends SubsystemBase {
         odometry.update(getRotation2d(), getModulesPositions());
 
         fields.recordOutput("Odometry", odometry.getPoseMeters());
-        fields.recordOutput("Module States", modules[0].getModuleState(getRotation2d()),
-                modules[1].getModuleState(getRotation2d()), modules[2].getModuleState(getRotation2d()),
-                modules[3].getModuleState(getRotation2d()));
+        fields.recordOutput("Module States", modules[0].getModuleState(),
+                modules[1].getModuleState(), modules[2].getModuleState(),
+                modules[3].getModuleState());
     }
 
     public void drive(Translation2d translation, double angularVelocity) {
@@ -62,7 +63,7 @@ public class Swerve extends SubsystemBase {
                 translation.getY(),
                 angularVelocity,
                 getRotation2d());
-
+        
         SwerveModuleState[] swerveModuleStates = swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.FALCON_MAX_SPEED);
@@ -92,7 +93,7 @@ public class Swerve extends SubsystemBase {
         for (SwerveModule module : modules) {
             modulePosition[module.getModuleNumber()] = new SwerveModulePosition(
                     module.getDistanceMeters(),
-                    getRotation2d());
+                    new Rotation2d(Math.toRadians(module.getAbsoluteAngle())));
         }
 
         return modulePosition;

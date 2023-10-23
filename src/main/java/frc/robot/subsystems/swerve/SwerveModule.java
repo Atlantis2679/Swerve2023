@@ -3,6 +3,7 @@ package frc.robot.subsystems.swerve;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.RobotMap;
 import frc.robot.subsystems.swerve.io.SwerveModuleIO;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOFalcon;
@@ -22,7 +23,7 @@ public class SwerveModule {
     private final Rotation2d angleOffSet;
 
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-            double angleOffSetDegrees, boolean isSimulation) {
+            double angleOffSetDegrees) {
 
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
@@ -32,28 +33,27 @@ public class SwerveModule {
 
         fields = new FieldsTable("Swerve Module " + this.moduleNumber);
 
-        if (isSimulation)
-            io = new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
-        else
-            io = new SwerveModuleIOFalcon(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
+        io = Robot.isSimulation()
+            ? new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID)
+            : new SwerveModuleIOFalcon(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
     }
 
     public void setDesiredState(SwerveModuleState desiredState) {
+        fields.recordOutput("integrated angle", getIntegratedEncoderAngle());
         desiredState = optimize(desiredState, new Rotation2d(Math.toRadians(getIntegratedEncoderAngle())));
 
         double demandPrcentOutput = desiredState.speedMetersPerSecond / SwerveContants.FALCON_MAX_SPEED;
         io.setDriveSpeed(demandPrcentOutput);
 
         if (Math.abs(desiredState.speedMetersPerSecond) > (SwerveContants.FALCON_MAX_SPEED * 0.01)) {
-            double angleTics = Converstions.degreesToFalcon(desiredState.angle.getDegrees(), SwerveContants.GEAR_RATIO);
-            io.setAngleMotor(angleTics);
+            io.setAngleMotor(desiredState.angle.getDegrees());
         }
     }
 
     public void resetToAbsolute() {
         double absoluteAngle = getAbsoluteAngle();
 
-        double absoluteAngleInFalcon = Converstions.degreesToFalcon(absoluteAngle, SwerveContants.GEAR_RATIO);
+        double absoluteAngleInFalcon = Converstions.degreesToFalcon(absoluteAngle, SwerveContants.GEAR_RATIO_DRIVE);
 
         io.setAngleMotorEncoder(absoluteAngleInFalcon);
     }
@@ -67,15 +67,16 @@ public class SwerveModule {
     }
 
     public double getDistanceMeters() {
-        return Converstions.falconToMeters(io.driveSpeed.get(), SwerveContants.WHEEL_CIRCUMFERENCE,
-                SwerveContants.GEAR_RATIO);
+        return io.driveDistanceMeters.get();
     }
 
     public double getIntegratedEncoderAngle() {
-        return Converstions.falconToDegrees(io.integratedEncoderAngle.get(), SwerveContants.GEAR_RATIO);
+        return io.integratedEncoderAngle.get();
     }
 
     public double placeInAppropriateScope(double currentAngle, double targetAngle) {
+        fields.recordOutput("angle before optimize", targetAngle);
+
         double lowerOffset = currentAngle % 360;
 
         double lowerBound = lowerOffset >= 0 ? currentAngle - lowerOffset : currentAngle - (360 + lowerOffset);
@@ -108,11 +109,14 @@ public class SwerveModule {
             targetAngle = delta > 0 ? (targetAngle - 180) : (targetAngle + 180);
         }
 
-        return new SwerveModuleState(targetSpeed, Rotation2d.fromDegrees(targetAngle));
+        fields.recordOutput("speed in optimize", targetSpeed);
+        fields.recordOutput("angle after optimize", targetAngle);
+
+        return new SwerveModuleState(targetSpeed, new Rotation2d(Math.toRadians(targetAngle)));
     }
 
-    public SwerveModuleState getModuleState(Rotation2d currentAngle) {
-        return new SwerveModuleState(Converstions.falconToMPS(io.driveSpeed.get(), SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO), currentAngle);
+    public SwerveModuleState getModuleState() {
+        return new SwerveModuleState(io.driveSpeedMPS.get(), new Rotation2d(Math.toRadians(io.absoluteAngle.get())));
     }
 
 }
