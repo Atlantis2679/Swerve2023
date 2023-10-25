@@ -1,4 +1,4 @@
-package frc.robot.utils.fields;
+package frc.lib.logfields;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,27 +13,44 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import frc.robot.Robot;
-import frc.robot.utils.fields.types.*;
+import frc.lib.logfields.types.BooleanArrayLogField;
+import frc.lib.logfields.types.BooleanLogField;
+import frc.lib.logfields.types.DoubleArrayLogField;
+import frc.lib.logfields.types.DoubleLogField;
+import frc.lib.logfields.types.FloatArrayLogField;
+import frc.lib.logfields.types.FloatLogField;
+import frc.lib.logfields.types.IntegerArrayLogField;
+import frc.lib.logfields.types.IntegerLogField;
+import frc.lib.logfields.types.RawLogField;
+import frc.lib.logfields.types.StringArrayLogField;
+import frc.lib.logfields.types.StringLogField;
 
-public class FieldsTable implements LoggableInputs {
+public class LogFieldsTable implements LoggableInputs {
+    private static ArrayList<LogFieldsTable> createdTables = new ArrayList<>();
+
+    private final String name;
     private final String prefix;
     private final Logger logger = Logger.getInstance();
     private final List<LoggableInputs> fields = new ArrayList<>();
     private Runnable periodicBeforeFields = null;
 
-    public FieldsTable(String name) {
-        Robot.registerPeriodic(() -> {
-            if(periodicBeforeFields != null) {
-                periodicBeforeFields.run();
-            }
-            Logger.getInstance().processInputs(name, this);
-        });
+    public LogFieldsTable(String name) {
+        this.name = name;
         prefix = name + "/";
+        createdTables.add(this);
     }
 
-    public FieldsTable getSubTable(String name) {
-        return new FieldsTable(prefix + name);
+    public static void updateAll() {
+        for (LogFieldsTable fieldsTable : createdTables) {
+            if (fieldsTable.periodicBeforeFields != null && !Logger.getInstance().hasReplaySource()) {
+                fieldsTable.periodicBeforeFields.run();
+            }
+            Logger.getInstance().processInputs(fieldsTable.name, fieldsTable);
+        }
+    }
+
+    public LogFieldsTable getSubTable(String name) {
+        return new LogFieldsTable(prefix + name);
     }
 
     @Override
@@ -54,13 +71,17 @@ public class FieldsTable implements LoggableInputs {
         this.periodicBeforeFields = periodicRunnable;
     }
 
+    private <T> LogField<T> registerField(LogField<T> field) {
+        fields.add(field);
+        Logger.getInstance().processInputs(name, field);
+        return field;
+    }
+
     public Supplier<byte[]> addRaw(
             String name,
             Supplier<byte[]> valueSupplier,
             byte[] defaultValue) {
-        RawField field = new RawField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new RawLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<byte[]> addRaw(String name, Supplier<byte[]> valueSupplier) {
@@ -71,9 +92,7 @@ public class FieldsTable implements LoggableInputs {
             String name,
             Supplier<Boolean> valueSupplier,
             boolean defaultValue) {
-        BooleanField field = new BooleanField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new BooleanLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<Boolean> addBoolean(String name, Supplier<Boolean> valueSupplier) {
@@ -84,9 +103,7 @@ public class FieldsTable implements LoggableInputs {
             String name,
             Supplier<Long> valueSupplier,
             long defaultValue) {
-        IntegerField field = new IntegerField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new IntegerLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<Long> addInteger(String name, Supplier<Long> valueSupplier) {
@@ -97,9 +114,7 @@ public class FieldsTable implements LoggableInputs {
             String name,
             Supplier<Float> valueSupplier,
             float defaultValue) {
-        FloatField field = new FloatField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new FloatLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<Float> addFloat(String name, Supplier<Float> valueSupplier) {
@@ -110,9 +125,7 @@ public class FieldsTable implements LoggableInputs {
             String name,
             Supplier<Double> valueSupplier,
             double defaultValue) {
-        DoubleField field = new DoubleField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new DoubleLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<Double> addDouble(String name, Supplier<Double> valueSupplier) {
@@ -123,9 +136,7 @@ public class FieldsTable implements LoggableInputs {
             String name,
             Supplier<String> valueSupplier,
             String defaultValue) {
-        StringField field = new StringField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new StringLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<String> addString(String name, Supplier<String> valueSupplier) {
@@ -136,65 +147,55 @@ public class FieldsTable implements LoggableInputs {
             String name,
             Supplier<boolean[]> valueSupplier,
             boolean[] defaultValue) {
-        BooleanArrayField field = new BooleanArrayField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new BooleanArrayLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<boolean[]> addBooleanArray(String name, Supplier<boolean[]> valueSupplier) {
-        return addBooleanArray(name, valueSupplier, new boolean[]{});
+        return addBooleanArray(name, valueSupplier, new boolean[] {});
     }
 
     public Supplier<long[]> addIntegerArray(
             String name,
             Supplier<long[]> valueSupplier,
             long[] defaultValue) {
-        IntegerArrayField field = new IntegerArrayField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new IntegerArrayLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<long[]> addIntegerArray(String name, Supplier<long[]> valueSupplier) {
-        return addIntegerArray(name, valueSupplier, new long[]{});
+        return addIntegerArray(name, valueSupplier, new long[] {});
     }
 
     public Supplier<float[]> addFloatArray(
             String name,
             Supplier<float[]> valueSupplier,
             float[] defaultValue) {
-        FloatArrayField field = new FloatArrayField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new FloatArrayLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<float[]> addFloatArray(String name, Supplier<float[]> valueSupplier) {
-        return addFloatArray(name, valueSupplier, new float[]{});
+        return addFloatArray(name, valueSupplier, new float[] {});
     }
 
     public Supplier<double[]> addDoubleArray(
             String name,
             Supplier<double[]> valueSupplier,
             double[] defaultValue) {
-        DoubleArrayField field = new DoubleArrayField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new DoubleArrayLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<double[]> addDoubleArray(String name, Supplier<double[]> valueSupplier) {
-        return addDoubleArray(name, valueSupplier, new double[]{});
+        return addDoubleArray(name, valueSupplier, new double[] {});
     }
 
     public Supplier<String[]> addStringArray(
             String name,
             Supplier<String[]> valueSupplier,
             String[] defaultValue) {
-        StringArrayField field = new StringArrayField(name, valueSupplier, defaultValue);
-        fields.add(field);
-        return field;
+        return registerField(new StringArrayLogField(name, valueSupplier, defaultValue));
     }
 
     public Supplier<String[]> addStringArray(String name, Supplier<String[]> valueSupplier) {
-        return addStringArray(name, valueSupplier, new String[]{});
+        return addStringArray(name, valueSupplier, new String[] {});
     }
 
     public void recordOutput(String name, byte[] value) {

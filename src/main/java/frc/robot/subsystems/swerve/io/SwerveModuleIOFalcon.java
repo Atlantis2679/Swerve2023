@@ -8,14 +8,14 @@ import com.ctre.phoenix.sensors.CANCoderConfiguration;
 
 import frc.robot.subsystems.swerve.Converstions;
 import frc.robot.subsystems.swerve.SwerveContants;
-import frc.robot.utils.fields.FieldsTable;
+import frc.lib.logfields.LogFieldsTable;
 
 public class SwerveModuleIOFalcon extends SwerveModuleIO {
     private final TalonFX driveMotor;
     private final TalonFX angleMotor;
     private final CANCoder canCoder;
 
-    public SwerveModuleIOFalcon(FieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
+    public SwerveModuleIOFalcon(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
 
         driveMotor = new TalonFX(driveMotorID);

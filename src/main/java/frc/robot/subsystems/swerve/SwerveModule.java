@@ -6,13 +6,13 @@ import frc.robot.Robot;
 import frc.robot.subsystems.swerve.io.SwerveModuleIO;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOFalcon;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOSim;
-import frc.robot.utils.fields.FieldsTable;
+import frc.lib.logfields.LogFieldsTable;
 
 public class SwerveModule {
 
     private final int moduleNumber;
 
-    private final FieldsTable fields;
+    private final LogFieldsTable fields;
     private final SwerveModuleIO io;
 
     private final int driveMotorID;

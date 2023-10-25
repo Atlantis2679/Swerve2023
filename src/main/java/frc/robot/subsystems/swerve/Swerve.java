@@ -15,13 +15,12 @@ import frc.robot.RobotMap.Module2;
 import frc.robot.RobotMap.Module3;
 import frc.robot.subsystems.swerve.io.GyroIO;
 import frc.robot.subsystems.swerve.io.GyroIONavX;
-import frc.robot.utils.fields.FieldsTable;
+import frc.lib.logfields.LogFieldsTable;
 
 public class Swerve extends SubsystemBase {
-
-    private final FieldsTable fields = new FieldsTable(getName());
-    private final GyroIO io = new GyroIONavX(fields, RobotMap.NAVX_PORT);;
-
+    private final LogFieldsTable fields = new LogFieldsTable(getName());
+    private final GyroIO io = new GyroIONavX(fields, RobotMap.NAVX_PORT);
+  
     private final SwerveDriveOdometry odometry;
 
     private final SwerveModule[] modules = {

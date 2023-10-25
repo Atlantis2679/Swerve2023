@@ -3,12 +3,12 @@ package frc.robot.subsystems.swerve.io;
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.SerialPort;
-import frc.robot.utils.fields.FieldsTable;
+import frc.lib.logfields.LogFieldsTable;
 
 public class GyroIONavX extends GyroIO{
     private final AHRS navX;
     
-    public GyroIONavX(FieldsTable fieldsTable, SerialPort.Port navXID) {
+    public GyroIONavX(LogFieldsTable fieldsTable, SerialPort.Port navXID) {
         super(fieldsTable);
         navX = new AHRS(navXID);
     }

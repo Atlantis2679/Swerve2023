@@ -1,13 +1,13 @@
-package frc.robot.utils.fields.types;
+package frc.lib.logfields.types;
 
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.LogTable;
 
-import frc.robot.utils.fields.FieldBase;
+import frc.lib.logfields.LogField;
 
-public class DoubleField extends FieldBase<Double> {
-    public DoubleField(String key, Supplier<Double> valueSupplier, double defaultValue) {
+public class StringArrayLogField extends LogField<String[]> {
+    public StringArrayLogField(String key, Supplier<String[]> valueSupplier, String[] defaultValue) {
         super(key, valueSupplier, defaultValue);
     }
 
@@ -19,6 +19,6 @@ public class DoubleField extends FieldBase<Double> {
 
     @Override
     public void fromLog(LogTable table) {
-        value = table.getDouble(key, value);
+        value = table.getStringArray(key, value);
     }
 }

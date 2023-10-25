@@ -1,4 +1,4 @@
-package frc.robot.utils;
+package frc.lib;
 
 public class RefValue<T> {
     public T value;
