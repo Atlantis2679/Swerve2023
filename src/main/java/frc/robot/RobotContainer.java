@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import java.lang.ModuleLayer.Controller;
-
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -15,25 +13,25 @@ import frc.robot.subsystems.swerve.commands.TeleopSwerve;
 
 public class RobotContainer {
     private final static Swerve swerve = new Swerve(Robot.isSimulation());
-    // public final static CommandXboxController driverController = new CommandXboxController(RobotMap.Controllers.DRIVER_PORT);
-    public final static Joystick driverController = new Joystick(0);
+    public final static CommandXboxController driverController = new CommandXboxController(RobotMap.Controllers.DRIVER_PORT);
+    // public final static Joystick driverController = new Joystick(0);
 
     public RobotContainer() {
         configureBindings();
     }
 
     private void configureBindings() {
-        // swerve.setDefaultCommand(new TeleopSwerve(
-        //         swerve,
-        //         () -> driverController.getLeftX(),
-        //         () -> driverController.getLeftY(),
-        //         () -> driverController.getRightX()));
-
         swerve.setDefaultCommand(new TeleopSwerve(
-            swerve,
-            () -> driverController.getX(),
-            () -> driverController.getY(),
-            () -> driverController.getZ()));
+                swerve,
+                () -> driverController.getLeftX(),
+                () -> driverController.getLeftY(),
+                () -> driverController.getRightX()));
+
+        // swerve.setDefaultCommand(new TeleopSwerve(
+        //     swerve,
+        //     () -> driverController.getX(),
+        //     () -> driverController.getY(),
+        //     () -> driverController.getZ()));
 
     }
 

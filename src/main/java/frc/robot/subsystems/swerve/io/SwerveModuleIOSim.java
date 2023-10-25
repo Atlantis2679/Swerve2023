@@ -1,12 +1,9 @@
 package frc.robot.subsystems.swerve.io;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
-import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import frc.robot.subsystems.swerve.Converstions;
 import frc.robot.subsystems.swerve.SwerveContants;
 import frc.robot.utils.fields.FieldsTable;
@@ -22,7 +19,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     public SwerveModuleIOSim(FieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
 
-        driveMotor = new FlywheelSim(DCMotor.getFalcon500(1), SwerveContants.GEAR_RATIO_DRIVE, 0.025);
+        driveMotor = new FlywheelSim(DCMotor.getFalcon500(1), SwerveContants.GEAR_RATIO_DRIVE, 0.05);
         angleMotor = new FlywheelSim(DCMotor.getFalcon500(1), SwerveContants.GEAR_RATIO_ANGLE, 0.004);
     }
 
@@ -38,8 +35,8 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
         driveMotor.update(0.02);
         angleMotor.update(0.02);
 
-        double angleDiffDistance = driveMotor.getAngularVelocityRPM() * 0.02;
-        distanceMeters += angleDiffDistance * SwerveContants.WHEEL_CIRCUMFERENCE;
+        double angleDiffDistance = driveMotor.getAngularVelocityRadPerSec() * 0.02;
+        distanceMeters += angleDiffDistance * SwerveContants.WHEEL_RADIUS;
 
         double calculate = (pidControllerAngle.calculate(getIntegratedEncoderDegrees()));
         angleMotor.setInputVoltage((calculate * 12) / 360);
@@ -70,7 +67,6 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     public void setDriveSpeed(double demandPrcentOutput) {
         demandPrcentOutput = MathUtil.clamp(demandPrcentOutput, -1, 1);
         driveMotor.setInputVoltage(demandPrcentOutput * 12);
-        fields.recordOutput("voltage drive motor", demandPrcentOutput * 12);
     }
 
     @Override
