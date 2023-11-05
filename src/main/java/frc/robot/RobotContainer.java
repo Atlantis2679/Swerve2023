@@ -12,9 +12,8 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.commands.TeleopSwerve;
 
 public class RobotContainer {
-    private final static Swerve swerve = new Swerve(Robot.isSimulation());
+    private final static Swerve swerve = new Swerve();
     public final static CommandXboxController driverController = new CommandXboxController(RobotMap.Controllers.DRIVER_PORT);
-    // public final static Joystick driverController = new Joystick(0);
 
     public RobotContainer() {
         configureBindings();
@@ -26,13 +25,6 @@ public class RobotContainer {
                 () -> driverController.getLeftX(),
                 () -> driverController.getLeftY(),
                 () -> driverController.getRightX()));
-
-        // swerve.setDefaultCommand(new TeleopSwerve(
-        //     swerve,
-        //     () -> driverController.getX(),
-        //     () -> driverController.getY(),
-        //     () -> driverController.getZ()));
-
     }
 
     public Command getAutonomousCommand() {

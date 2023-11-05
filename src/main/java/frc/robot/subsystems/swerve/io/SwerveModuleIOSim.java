@@ -4,9 +4,9 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import frc.lib.logfields.LogFieldsTable;
 import frc.robot.subsystems.swerve.Converstions;
 import frc.robot.subsystems.swerve.SwerveContants;
-import frc.robot.utils.fields.FieldsTable;
 
 public class SwerveModuleIOSim extends SwerveModuleIO {
     private final FlywheelSim driveMotor;
@@ -16,7 +16,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     private double distanceMeters = 0;
     private final PIDController pidControllerAngle = new PIDController(1, 0, 0);
 
-    public SwerveModuleIOSim(FieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
+    public SwerveModuleIOSim(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
 
         driveMotor = new FlywheelSim(DCMotor.getFalcon500(1), SwerveContants.GEAR_RATIO_DRIVE, 0.05);
@@ -25,8 +25,8 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
 
     @Override
     public void periodicBeforeFields() {
-        fields.recordOutput("angular velucity rad per sec", angleMotor.getAngularVelocityRadPerSec());
-        fields.recordOutput("MPS drive", driveMotor.getAngularVelocityRPM() * SwerveContants.WHEEL_CIRCUMFERENCE);
+        fields.recordOutput("angular velocity degrees per sec", angleMotor.getAngularVelocityRadPerSec() * (180 / Math.PI));
+        fields.recordOutput("MPS drive", driveMotor.getAngularVelocityRPM() / 60 * SwerveContants.WHEEL_CIRCUMFERENCE);
 
         double angleDiffRad = angleMotor.getAngularVelocityRadPerSec() * 0.02;
         encoderIntegratedDegreesSim += Math.toDegrees(angleDiffRad);
@@ -35,11 +35,11 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
         driveMotor.update(0.02);
         angleMotor.update(0.02);
 
-        double angleDiffDistance = driveMotor.getAngularVelocityRadPerSec() * 0.02;
-        distanceMeters += angleDiffDistance * SwerveContants.WHEEL_RADIUS;
+        double angleDiffDistanceRad = driveMotor.getAngularVelocityRadPerSec() * 0.02;
+        distanceMeters += angleDiffDistanceRad * SwerveContants.WHEEL_RADIUS_M;
 
-        double calculate = (pidControllerAngle.calculate(getIntegratedEncoderDegrees()));
-        angleMotor.setInputVoltage((calculate * 12) / 360);
+        double PIDResultDegrees = (pidControllerAngle.calculate(getIntegratedEncoderDegrees()));
+        angleMotor.setInputVoltage((PIDResultDegrees * 12) / 360);
     }
 
     @Override 

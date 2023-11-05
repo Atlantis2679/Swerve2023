@@ -2,11 +2,11 @@ package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.lib.logfields.LogFieldsTable;
 import frc.robot.Robot;
 import frc.robot.subsystems.swerve.io.SwerveModuleIO;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOFalcon;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOSim;
-import frc.lib.logfields.LogFieldsTable;
 
 public class SwerveModule {
 
@@ -29,7 +29,7 @@ public class SwerveModule {
         this.encoderID = encoderID;
         this.angleOffSet = new Rotation2d(Math.toRadians(angleOffSetDegrees));
 
-        fields = new FieldsTable("Swerve Module " + this.moduleNumber);
+        fields = new LogFieldsTable("Swerve Module " + this.moduleNumber).getSubTable("Modules");
 
         io = Robot.isSimulation()
             ? new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID)
@@ -40,10 +40,10 @@ public class SwerveModule {
         fields.recordOutput("integrated angle", getIntegratedEncoderAngle());
         desiredState = optimize(desiredState, new Rotation2d(Math.toRadians(getIntegratedEncoderAngle())));
 
-        double demandPrcentOutput = desiredState.speedMetersPerSecond / SwerveContants.FALCON_MAX_SPEED;
+        double demandPrcentOutput = desiredState.speedMetersPerSecond / SwerveContants.FALCON_MAX_SPEED_MPS;
         io.setDriveSpeed(demandPrcentOutput);
 
-        if (Math.abs(desiredState.speedMetersPerSecond) > (SwerveContants.FALCON_MAX_SPEED * 0.01)) {
+        if (Math.abs(desiredState.speedMetersPerSecond) > (SwerveContants.FALCON_MAX_SPEED_MPS * 0.01)) {
             io.setAngleMotor(desiredState.angle.getDegrees());
         }
     }

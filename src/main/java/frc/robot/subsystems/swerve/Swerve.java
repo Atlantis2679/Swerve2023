@@ -32,14 +32,19 @@ public class Swerve extends SubsystemBase {
                     SwerveContants.MODULE_2_ANGLE_OFFSET_DEGREES),
             new SwerveModule(3, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
                     SwerveContants.MODULE_3_ANGLE_OFFSET_DEGREES) };
-
+    
+    public final Translation2d FRONT_RIGHT_LOCATION = new Translation2d(SwerveContants.TRACK_WIDTH / 2, SwerveContants.TRACK_LENGTH / 2);
+    public final Translation2d FRONT_LEFT_LOCATION = new Translation2d(SwerveContants.TRACK_WIDTH / 2, -SwerveContants.TRACK_LENGTH / 2);
+    public final Translation2d BACK_RIGHT_LOCATION = new Translation2d(-SwerveContants.TRACK_WIDTH / 2, SwerveContants.TRACK_LENGTH / 2);
+    public final Translation2d BACK_LEFT_LOCATION = new Translation2d(-SwerveContants.TRACK_WIDTH / 2, -SwerveContants.TRACK_LENGTH / 2);
+                    
     private final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
-            SwerveContants.FRONT_RIGHT_LOCATION,
-            SwerveContants.FRONT_LEFT_LOCATION,
-            SwerveContants.BACK_RIGHT_LOCATION,
-            SwerveContants.BACK_LEFT_LOCATION);
+            FRONT_RIGHT_LOCATION,
+            FRONT_LEFT_LOCATION,
+            BACK_RIGHT_LOCATION,
+            BACK_LEFT_LOCATION);
 
-    public Swerve(boolean isSimulation) {
+    public Swerve() {
         resetModulesToAbsolute();
 
         odometry = new SwerveDriveOdometry(swerveKinematics, getRotation2d(), getModulesPositions());
@@ -64,7 +69,7 @@ public class Swerve extends SubsystemBase {
         
         SwerveModuleState[] swerveModuleStates = swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.FALCON_MAX_SPEED);
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.FALCON_MAX_SPEED_MPS);
 
         for (SwerveModule module : modules) {
             module.setDesiredState(swerveModuleStates[module.getModuleNumber()]);

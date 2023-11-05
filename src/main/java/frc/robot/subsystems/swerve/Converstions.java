@@ -21,7 +21,7 @@ public class Converstions {
     }
 
     public static double RPMToDegrees(double degrees, double gearRatio) {
-        return falconToDegrees(RPMToDegrees(degrees, gearRatio), gearRatio);
+        return falconToDegrees(RPMToFalcon(degrees, gearRatio), gearRatio);
     }
 
     public static double falconToRPM(double velocityCounts, double gearRatio) {
