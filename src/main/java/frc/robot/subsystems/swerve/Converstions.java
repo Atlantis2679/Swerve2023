@@ -56,4 +56,7 @@ public class Converstions {
         return meters / (wheelCircumference / (gearRatio * COUNTS_PER_REV_FALCON));
     }
 
+    public static double RPMToMPS(double RPM, double wheelRadiusM) {
+        return wheelRadiusM * 2 * Math.PI * (RPM / 60);
+    }
 }

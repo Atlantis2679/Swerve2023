@@ -26,7 +26,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     @Override
     public void periodicBeforeFields() {
         fields.recordOutput("angular velocity degrees per sec", angleMotor.getAngularVelocityRadPerSec() * (180 / Math.PI));
-        fields.recordOutput("MPS drive", driveMotor.getAngularVelocityRPM() / 60 * SwerveContants.WHEEL_CIRCUMFERENCE);
+        fields.recordOutput("MPS drive", driveMotor.getAngularVelocityRPM() / 60 * SwerveContants.WHEEL_CIRCUMFERENCE_M);
 
         double angleDiffRad = angleMotor.getAngularVelocityRadPerSec() * 0.02;
         encoderIntegratedDegreesSim += Math.toDegrees(angleDiffRad);
@@ -49,8 +49,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
 
     @Override
     protected double getDriveSpeedMPS() {
-        return Converstions.falconToMPS(Converstions.RPMToFalcon(driveMotor.getAngularVelocityRPM(), SwerveContants.GEAR_RATIO_DRIVE),
-                     SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO_DRIVE);
+        return Converstions.RPMToMPS(driveMotor.getAngularVelocityRPM(), SwerveContants.WHEEL_RADIUS_M);
     }
 
     @Override

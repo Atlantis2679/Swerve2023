@@ -38,7 +38,7 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
     @Override
     protected double getDriveSpeedMPS() {
-        return Converstions.falconToMPS(driveMotor.getSelectedSensorPosition(), SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO_DRIVE);
+        return Converstions.falconToMPS(driveMotor.getSelectedSensorPosition(), SwerveContants.WHEEL_CIRCUMFERENCE_M, SwerveContants.GEAR_RATIO_DRIVE);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
     @Override
     protected double getDriveDistanceMeters() {
-        return Converstions.falconToMeters(driveMotor.getSelectedSensorPosition(), SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO_DRIVE);
+        return Converstions.falconToMeters(driveMotor.getSelectedSensorPosition(), SwerveContants.WHEEL_CIRCUMFERENCE_M, SwerveContants.GEAR_RATIO_DRIVE);
     }
 
     @Override

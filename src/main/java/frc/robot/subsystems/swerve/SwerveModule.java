@@ -21,7 +21,7 @@ public class SwerveModule {
     private final Rotation2d angleOffSet;
 
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-            double angleOffSetDegrees) {
+            double angleOffSetDegrees, LogFieldsTable fieldsTable) {
 
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
@@ -29,7 +29,7 @@ public class SwerveModule {
         this.encoderID = encoderID;
         this.angleOffSet = new Rotation2d(Math.toRadians(angleOffSetDegrees));
 
-        fields = new LogFieldsTable("Swerve Module " + this.moduleNumber).getSubTable("Modules");
+        fields = fieldsTable.getSubTable("Module " + getModuleNumber());
 
         io = Robot.isSimulation()
             ? new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID)
@@ -73,12 +73,10 @@ public class SwerveModule {
     }
 
     public double placeInAppropriateScope(double currentAngle, double targetAngle) {
-        fields.recordOutput("angle before optimize", targetAngle);
+        int scope = (int) currentAngle / 360;
 
-        double lowerOffset = currentAngle % 360;
-
-        double lowerBound = lowerOffset >= 0 ? currentAngle - lowerOffset : currentAngle - (360 + lowerOffset);
-        double upperBound = lowerOffset >= 0 ? currentAngle + (360 - lowerOffset) : currentAngle - lowerOffset;
+        double lowerBound = currentAngle >= 0 ? scope * 360 : (scope - 1) * 360;
+        double upperBound = currentAngle >= 0 ? (scope + 1) * 360 : scope * 360;
 
         while (targetAngle < lowerBound) {
             targetAngle += 360;

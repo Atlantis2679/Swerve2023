@@ -39,7 +39,7 @@ public class TeleopSwerve extends CommandBase {
         swerve.drive(
                 new Translation2d(
                         -1 * yValuesSupplier.getAsDouble(),
-                        -1 * xValuesSupplier.getAsDouble()).times(SwerveContants.FALCON_MAX_SPEED_MPS),
+                        xValuesSupplier.getAsDouble()).times(SwerveContants.FALCON_MAX_SPEED_MPS),
                 rotationValuesSupplier.getAsDouble() * SwerveContants.FALCOM_MAX_ANGULAR_VELOCITY);
     }
 
