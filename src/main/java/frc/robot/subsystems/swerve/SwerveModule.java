@@ -21,7 +21,7 @@ public class SwerveModule {
     private final Rotation2d angleOffSet;
 
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-            double angleOffSetDegrees, LogFieldsTable fieldsTable) {
+        double angleOffSetDegrees, LogFieldsTable fieldsTable) {
 
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
@@ -30,6 +30,7 @@ public class SwerveModule {
         this.angleOffSet = new Rotation2d(Math.toRadians(angleOffSetDegrees));
 
         fields = fieldsTable.getSubTable("Module " + getModuleNumber());
+        fields.update();
 
         io = Robot.isSimulation()
             ? new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID)
@@ -57,7 +58,7 @@ public class SwerveModule {
     }
 
     public double getAbsoluteAngle() {
-        return io.absoluteAngle.get() - angleOffSet.getDegrees();
+        return io.absoluteAngle.getAsDouble() - angleOffSet.getDegrees();
     }
 
     public int getModuleNumber() {
@@ -65,11 +66,11 @@ public class SwerveModule {
     }
 
     public double getDistanceMeters() {
-        return io.driveDistanceMeters.get();
+        return io.driveDistanceMeters.getAsDouble();
     }
 
     public double getIntegratedEncoderAngle() {
-        return io.integratedEncoderAngle.get();
+        return io.integratedEncoderAngle.getAsDouble();
     }
 
     public double placeInAppropriateScope(double currentAngle, double targetAngle) {
@@ -112,7 +113,7 @@ public class SwerveModule {
     }
 
     public SwerveModuleState getModuleState() {
-        return new SwerveModuleState(io.driveSpeedMPS.get(), new Rotation2d(Math.toRadians(io.absoluteAngle.get())));
+        return new SwerveModuleState(io.driveSpeedMPS.getAsDouble(), new Rotation2d(Math.toRadians(io.absoluteAngle.getAsDouble())));
     }
 
 }
