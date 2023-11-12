@@ -1,12 +1,12 @@
 package frc.robot.subsystems.swerve;
 
+import edu.wpi.first.math.util.Units;
+
 public class SwerveContants {
 
     public final static double GEAR_RATIO_DRIVE = 6.75;
     public final static double GEAR_RATIO_ANGLE = 12.6;
-    public final static double WHEEL_RADIUS_M = 0.05;
-    public final static double WHEEL_CIRCUMFERENCE_M = WHEEL_RADIUS_M * 2 * Math.PI;
-
+    public final static double WHEEL_RADIUS_METERS = Units.inchesToMeters(2);
 
     public final static double FALCON_MAX_SPEED_MPS = 2;
     public final static double FALCOM_MAX_ANGULAR_VELOCITY = 0.1;

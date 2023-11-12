@@ -5,7 +5,7 @@ import java.util.function.DoubleSupplier;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.swerve.SwerveContants;
+import static frc.robot.subsystems.swerve.SwerveContants.*;
 
 public class TeleopSwerve extends CommandBase {
     private final Swerve swerve;
@@ -39,8 +39,8 @@ public class TeleopSwerve extends CommandBase {
         swerve.drive(
                 new Translation2d(
                         -1 * yValuesSupplier.getAsDouble(),
-                        xValuesSupplier.getAsDouble()).times(SwerveContants.FALCON_MAX_SPEED_MPS),
-                rotationValuesSupplier.getAsDouble() * SwerveContants.FALCOM_MAX_ANGULAR_VELOCITY);
+                        xValuesSupplier.getAsDouble()).times(FALCON_MAX_SPEED_MPS),
+                rotationValuesSupplier.getAsDouble() * FALCOM_MAX_ANGULAR_VELOCITY);
     }
 
     @Override

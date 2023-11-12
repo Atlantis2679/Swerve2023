@@ -23,14 +23,14 @@ public class SwerveModule {
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
         double angleOffSetDegrees, LogFieldsTable fieldsTable) {
 
+        fields = fieldsTable.getSubTable("Module " + getModuleNumber());
+        fields.update();
+
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
         this.angleMotorID = angleMotorID;
         this.encoderID = encoderID;
         this.angleOffSet = new Rotation2d(Math.toRadians(angleOffSetDegrees));
-
-        fields = fieldsTable.getSubTable("Module " + getModuleNumber());
-        fields.update();
 
         io = Robot.isSimulation()
             ? new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID)
@@ -113,7 +113,11 @@ public class SwerveModule {
     }
 
     public SwerveModuleState getModuleState() {
-        return new SwerveModuleState(io.driveSpeedMPS.getAsDouble(), new Rotation2d(Math.toRadians(io.absoluteAngle.getAsDouble())));
+        return new SwerveModuleState(getModuleMPS(), new Rotation2d(Math.toRadians(io.absoluteAngle.getAsDouble())));
+    }
+
+    public double getModuleMPS() {
+        return io.driveSpeedMPS.getAsDouble();
     }
 
 }
