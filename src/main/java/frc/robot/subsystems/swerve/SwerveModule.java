@@ -1,6 +1,7 @@
 package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.logfields.LogFieldsTable;
 import frc.robot.Robot;
@@ -115,11 +116,19 @@ public class SwerveModule {
     }
 
     public SwerveModuleState getModuleState() {
-        return new SwerveModuleState(getModuleMPS(), new Rotation2d(Math.toRadians(io.absoluteAngle.getAsDouble())));
+        return new SwerveModuleState(getModuleMPS(), getRotation2d());
     }
 
     public double getModuleMPS() {
         return io.driveSpeedMPS.getAsDouble();
+    }
+
+    public Rotation2d getRotation2d () {
+        return new Rotation2d(Math.toRadians(io.absoluteAngle.getAsDouble()));
+    }
+
+    public SwerveModulePosition getModulePosition() {
+        return new SwerveModulePosition(io.driveDistanceMeters.getAsDouble(), getRotation2d());
     }
 
 }

@@ -18,4 +18,9 @@ public class GyroIONavX extends GyroIO{
         return navX.getYaw();
     }
 
+    @Override
+    protected boolean isConnected() {
+        return navX.isConnected();
+    }
+
 }
