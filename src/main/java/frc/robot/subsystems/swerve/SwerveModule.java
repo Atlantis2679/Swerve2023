@@ -8,6 +8,8 @@ import frc.robot.subsystems.swerve.io.SwerveModuleIO;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOFalcon;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOSim;
 
+import static frc.robot.subsystems.swerve.SwerveContants.*;
+
 public class SwerveModule {
 
     private final int moduleNumber;
@@ -41,10 +43,10 @@ public class SwerveModule {
         fields.recordOutput("integrated angle", getIntegratedEncoderAngle());
         desiredState = optimize(desiredState, new Rotation2d(Math.toRadians(getIntegratedEncoderAngle())));
 
-        double demandPrcentOutput = desiredState.speedMetersPerSecond / SwerveContants.FALCON_MAX_SPEED_MPS;
+        double demandPrcentOutput = desiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS;
         io.setDriveSpeed(demandPrcentOutput);
 
-        if (Math.abs(desiredState.speedMetersPerSecond) > (SwerveContants.FALCON_MAX_SPEED_MPS * 0.01)) {
+        if (Math.abs(desiredState.speedMetersPerSecond) > (FALCON_MAX_SPEED_MPS * 0.01)) {
             io.setAngleMotor(desiredState.angle.getDegrees());
         }
     }
@@ -52,7 +54,7 @@ public class SwerveModule {
     public void resetToAbsolute() {
         double absoluteAngle = getAbsoluteAngle();
 
-        double absoluteAngleInFalcon = Converstions.degreesToFalcon(absoluteAngle, SwerveContants.GEAR_RATIO_DRIVE);
+        double absoluteAngleInFalcon = Converstions.degreesToFalcon(absoluteAngle, GEAR_RATIO_DRIVE);
 
         io.setAngleMotorEncoder(absoluteAngleInFalcon);
     }
