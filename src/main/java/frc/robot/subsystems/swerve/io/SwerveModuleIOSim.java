@@ -14,7 +14,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     private double encoderIntegratedDegreesSim = 0;
     private double encoderAbsolueDegreesSim = 0;
     private double distanceMeters = 0;
-    private final PIDController pidControllerAngle = new PIDController(1, 0, 0);
+    private final PIDController pidControllerAngle = new PIDController(1, 0, 0.005);
 
     public SwerveModuleIOSim(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
