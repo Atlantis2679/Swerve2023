@@ -21,7 +21,7 @@ public class SwerveModule {
     private final int driveMotorID;
     private final int angleMotorID;
     private final int encoderID;
-    private final Rotation2d angleOffSet;
+    private final double angleOffSetDegrees;
 
     private double lastDriveDistance;
     private double currDriveDistance;
@@ -32,7 +32,7 @@ public class SwerveModule {
         this.driveMotorID = driveMotorID;
         this.angleMotorID = angleMotorID;
         this.encoderID = encoderID;
-        this.angleOffSet = new Rotation2d(Math.toRadians(angleOffSetDegrees));
+        this.angleOffSetDegrees = angleOffSetDegrees;
 
         fields = fieldsTable.getSubTable("Module " + moduleNumber);
         fields.update();
@@ -48,11 +48,6 @@ public class SwerveModule {
     public void periodic() {
         lastDriveDistance = currDriveDistance;
         currDriveDistance = io.driveDistanceMeters.getAsDouble();
-
-        fields.recordOutput("last drive distance", lastDriveDistance);
-        fields.recordOutput("curr drive distance", currDriveDistance);
-        fields.recordOutput("delta drive distance", currDriveDistance - lastDriveDistance);
-        fields.recordOutput("angle", getRotation2d().getDegrees());
     }
 
     public void setDesiredState(SwerveModuleState desiredState) {
@@ -61,6 +56,7 @@ public class SwerveModule {
         double demandPrcentOutput = desiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS;
         io.setDriveSpeed(demandPrcentOutput);
 
+        // only rotate when speed is greater then 1%, to avoid ruining wheels.
         if (Math.abs(desiredState.speedMetersPerSecond) > (FALCON_MAX_SPEED_MPS * 0.01)) {
             io.setAngleMotor(desiredState.angle.getDegrees());
         }
@@ -75,7 +71,7 @@ public class SwerveModule {
     }
 
     public double getAbsoluteAngle() {
-        return io.absoluteAngle.getAsDouble() - angleOffSet.getDegrees();
+        return io.absoluteAngle.getAsDouble() - angleOffSetDegrees;
     }
 
     public int getModuleNumber() {

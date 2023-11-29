@@ -107,7 +107,9 @@ public class Swerve extends SubsystemBase {
                     angularVelocity,
                     getRotation2d());
         } else {
-            desiredChassisSpeeds = new ChassisSpeeds(translation.getX(), translation.getY(),
+            desiredChassisSpeeds = new ChassisSpeeds(
+                    translation.getX(),
+                    translation.getY(),
                     angularVelocity);
         }
 
@@ -115,8 +117,11 @@ public class Swerve extends SubsystemBase {
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.FALCON_MAX_SPEED_MPS);
 
-        fieldsTable.recordOutput("Module Desired States", swerveModuleStates[0],
-                swerveModuleStates[1], swerveModuleStates[2],
+        fieldsTable.recordOutput(
+                "Module Desired States",
+                swerveModuleStates[0],
+                swerveModuleStates[1],
+                swerveModuleStates[2],
                 swerveModuleStates[3]);
 
         for (SwerveModule module : modules) {
