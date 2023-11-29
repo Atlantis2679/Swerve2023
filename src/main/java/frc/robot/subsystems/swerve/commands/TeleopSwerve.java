@@ -43,17 +43,17 @@ public class TeleopSwerve extends CommandBase {
         if(!isFieldRelative.getAsBoolean()) {
             swerve.drive(
                 new Translation2d(
-                        -1 * yValuesSupplier.getAsDouble(),
+                        yValuesSupplier.getAsDouble(),
                         -1 * xValuesSupplier.getAsDouble()).times(FALCON_MAX_SPEED_MPS),
-                rotationValuesSupplier.getAsDouble() * FALCOM_MAX_ANGULAR_VELOCITY,
+                -1 * rotationValuesSupplier.getAsDouble() * FALCOM_MAX_ANGULAR_VELOCITY,
                 isFieldRelative);
         }
         else {
             swerve.drive(
                 new Translation2d(
-                    -1 * yValuesSupplier.getAsDouble(),
+                    yValuesSupplier.getAsDouble(),
                     -1 * xValuesSupplier.getAsDouble()).times(FALCON_MAX_SPEED_MPS),
-                rotationValuesSupplier.getAsDouble() * FALCOM_MAX_ANGULAR_VELOCITY,
+                -1 * rotationValuesSupplier.getAsDouble() * FALCOM_MAX_ANGULAR_VELOCITY,
                 isFieldRelative);
         }
     }

@@ -14,7 +14,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     private double encoderIntegratedDegreesSim = 0;
     private double encoderAbsolueDegreesSim = 0;
     private double distanceMeters = 0;
-    private final PIDController pidControllerAngle = new PIDController(1, 0, 0.005);
+    private final PIDController pidControllerAngle = new PIDController(0.04, 0, 0);
 
     public SwerveModuleIOSim(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
@@ -36,7 +36,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
         distanceMeters += angleDiffDistanceRad * WHEEL_RADIUS_METERS;
 
         double PIDResultDegrees = (pidControllerAngle.calculate(getIntegratedEncoderDegrees()));
-        angleMotor.setInputVoltage((PIDResultDegrees * 12) / 360);
+        angleMotor.setInputVoltage(PIDResultDegrees);
     }
 
     @Override 

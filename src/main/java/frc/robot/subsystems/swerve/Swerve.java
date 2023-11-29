@@ -23,27 +23,24 @@ import static frc.robot.subsystems.swerve.SwerveContants.*;
 
 import java.util.function.BooleanSupplier;
 
-import static frc.robot.RobotMap.*;
-
 public class Swerve extends SubsystemBase {
-    private final LogFieldsTable fields = new LogFieldsTable(getName());
+    private final LogFieldsTable fieldsTable = new LogFieldsTable(getName());
 
-    private final GyroIO io = Robot.isSimulation()
-            ? new GyroIOSim(fields)
-            : new GyroIONavX(fields, NAVX_PORT);
+    private final GyroIO gyroIO = Robot.isSimulation()
+            ? new GyroIOSim(fieldsTable)
+            : new GyroIONavX(fieldsTable);
 
     private final SwerveDriveOdometry odometry;
-    private Twist2d twist;
 
     private final SwerveModule[] modules = {
             new SwerveModule(0, Module0.DRIVE_MOTOR_ID, Module0.ANGLE_MOTOR_ID, Module0.ENCODER_ID,
-                    MODULE_0_ANGLE_OFFSET_DEGREES, fields),
+                    MODULE_0_ANGLE_OFFSET_DEGREES, fieldsTable),
             new SwerveModule(1, Module1.DRIVE_MOTOR_ID, Module1.ANGLE_MOTOR_ID, Module1.ENCODER_ID,
-                    MODULE_1_ANGLE_OFFSET_DEGREES, fields),
+                    MODULE_1_ANGLE_OFFSET_DEGREES, fieldsTable),
             new SwerveModule(2, Module2.DRIVE_MOTOR_ID, Module2.ANGLE_MOTOR_ID, Module2.ENCODER_ID,
-                    MODULE_2_ANGLE_OFFSET_DEGREES, fields),
+                    MODULE_2_ANGLE_OFFSET_DEGREES, fieldsTable),
             new SwerveModule(3, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
-                    MODULE_3_ANGLE_OFFSET_DEGREES, fields) };
+                    MODULE_3_ANGLE_OFFSET_DEGREES, fieldsTable) };
 
     public final Translation2d FRONT_RIGHT_LOCATION = new Translation2d(SwerveContants.TRACK_WIDTH_M / 2,
             SwerveContants.TRACK_LENGTH_M / 2);
@@ -60,39 +57,44 @@ public class Swerve extends SubsystemBase {
             BACK_RIGHT_LOCATION,
             BACK_LEFT_LOCATION);
 
+    private double lastYaw = 0;
+
     public Swerve() {
-        fields.update();
+        fieldsTable.update();
         resetModulesToAbsolute();
 
-        twist = swerveKinematics.toTwist2d(modules[0].getModulePosition(), modules[1].getModulePosition(),
-                modules[2].getModulePosition(), modules[3].getModulePosition());
-
-        if (io.isConnected.getAsBoolean())
-            odometry = new SwerveDriveOdometry(swerveKinematics, getRotation2d(), getModulesPositions());
-        else
-            odometry = new SwerveDriveOdometry(swerveKinematics, new Rotation2d(twist.dtheta),
-                    getModulesPositions());
+        odometry = new SwerveDriveOdometry(
+                swerveKinematics,
+                gyroIO.isConnected.getAsBoolean() ? getRotation2d() : new Rotation2d(),
+                getModulesPositions());
     }
 
     @Override
     public void periodic() {
-        twist = swerveKinematics.toTwist2d(modules[0].getModulePosition(), modules[1].getModulePosition(),
-                modules[2].getModulePosition(), modules[3].getModulePosition());
+        for (SwerveModule module : modules) {
+            module.periodic();
+        }
 
-        if (io.isConnected.getAsBoolean())
-            odometry.update(getRotation2d(), getModulesPositions());
-        else
-            odometry.update(new Rotation2d(twist.dtheta), getModulesPositions());
+        if (gyroIO.isConnected.getAsBoolean()) {
+            odometry.update(Rotation2d.fromDegrees(gyroIO.yaw.getAsDouble()), getModulesPositions());
+            lastYaw = gyroIO.yaw.getAsDouble();
+        } else {
+            Twist2d twist = swerveKinematics.toTwist2d(
+                    modules[0].getModulePositionDelta(),
+                    modules[1].getModulePositionDelta(),
+                    modules[2].getModulePositionDelta(),
+                    modules[3].getModulePositionDelta());
 
-        fields.recordOutput("Odometry", odometry.getPoseMeters());
-        fields.recordOutput("Module States", modules[0].getModuleState(),
-                modules[1].getModuleState(), modules[2].getModuleState(),
+            odometry.update(Rotation2d.fromRadians(Math.toRadians(lastYaw) + twist.dtheta), getModulesPositions());
+            lastYaw += Math.toDegrees(twist.dtheta);
+        }
+
+        fieldsTable.recordOutput("Odometry", odometry.getPoseMeters());
+        fieldsTable.recordOutput("Module States",
+                modules[0].getModuleState(),
+                modules[1].getModuleState(),
+                modules[2].getModuleState(),
                 modules[3].getModuleState());
-        fields.recordOutput("MPS drive module 0", modules[0].getModuleMPS());
-        fields.recordOutput("MPS drive module 1", modules[1].getModuleMPS());
-        fields.recordOutput("MPS drive module 2", modules[2].getModuleMPS());
-        fields.recordOutput("MPS drive module 3", modules[3].getModuleMPS());
-        fields.recordOutput("twist", Math.toDegrees(twist.dtheta));
     }
 
     public void drive(Translation2d translation, double angularVelocity, BooleanSupplier isFieldRelative) {
@@ -113,7 +115,7 @@ public class Swerve extends SubsystemBase {
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.FALCON_MAX_SPEED_MPS);
 
-        fields.recordOutput("Module Desired States", swerveModuleStates[0],
+        fieldsTable.recordOutput("Module Desired States", swerveModuleStates[0],
                 swerveModuleStates[1], swerveModuleStates[2],
                 swerveModuleStates[3]);
 
@@ -123,7 +125,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public double getYaw() {
-        return io.yaw.getAsDouble();
+        return odometry.getPoseMeters().getRotation().getDegrees();
     }
 
     public void resetModulesToAbsolute() {
@@ -133,7 +135,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public Rotation2d getRotation2d() {
-        return new Rotation2d(Math.toRadians(io.yaw.getAsDouble()));
+        return odometry.getPoseMeters().getRotation();
     }
 
     public SwerveModulePosition[] getModulesPositions() {

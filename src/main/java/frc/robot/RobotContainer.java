@@ -4,17 +4,15 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.commands.TeleopSwerve;
 
 public class RobotContainer {
     private final static Swerve swerve = new Swerve();
-    public final XboxController driverController = new XboxController(RobotMap.Controllers.DRIVER_PORT);
-    public final JoystickButton robotCentric = new JoystickButton(driverController, XboxController.Button.kLeftBumper.value);
+    public final CommandXboxController driverController = new CommandXboxController(RobotMap.Controllers.DRIVER_PORT);
 
     public RobotContainer() {
         configureBindings();
@@ -24,9 +22,9 @@ public class RobotContainer {
         swerve.setDefaultCommand(new TeleopSwerve(
                 swerve,
                 () -> driverController.getLeftX(),
-                () -> driverController.getLeftY(),
+                () -> -driverController.getLeftY(),
                 () -> driverController.getRightX(),
-                () -> robotCentric.getAsBoolean()));
+                () -> driverController.leftBumper().getAsBoolean()));
     }
 
     public Command getAutonomousCommand() {

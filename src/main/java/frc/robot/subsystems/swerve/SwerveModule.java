@@ -23,25 +23,39 @@ public class SwerveModule {
     private final int encoderID;
     private final Rotation2d angleOffSet;
 
+    private double lastDriveDistance;
+    private double currDriveDistance;
+
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-        double angleOffSetDegrees, LogFieldsTable fieldsTable) {
-
-        fields = fieldsTable.getSubTable("Module " + getModuleNumber());
-        fields.update();
-
+            double angleOffSetDegrees, LogFieldsTable fieldsTable) {
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
         this.angleMotorID = angleMotorID;
         this.encoderID = encoderID;
         this.angleOffSet = new Rotation2d(Math.toRadians(angleOffSetDegrees));
 
+        fields = fieldsTable.getSubTable("Module " + moduleNumber);
+        fields.update();
+
         io = Robot.isSimulation()
-            ? new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID)
-            : new SwerveModuleIOFalcon(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
+                ? new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID)
+                : new SwerveModuleIOFalcon(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
+
+        lastDriveDistance = io.driveDistanceMeters.getAsDouble();
+        currDriveDistance = io.driveDistanceMeters.getAsDouble();
+    }
+
+    public void periodic() {
+        lastDriveDistance = currDriveDistance;
+        currDriveDistance = io.driveDistanceMeters.getAsDouble();
+
+        fields.recordOutput("last drive distance", lastDriveDistance);
+        fields.recordOutput("curr drive distance", currDriveDistance);
+        fields.recordOutput("delta drive distance", currDriveDistance - lastDriveDistance);
+        fields.recordOutput("angle", getRotation2d().getDegrees());
     }
 
     public void setDesiredState(SwerveModuleState desiredState) {
-        fields.recordOutput("integrated angle", getIntegratedEncoderAngle());
         desiredState = optimize(desiredState, new Rotation2d(Math.toRadians(getIntegratedEncoderAngle())));
 
         double demandPrcentOutput = desiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS;
@@ -109,9 +123,6 @@ public class SwerveModule {
             targetAngle = delta > 0 ? (targetAngle - 180) : (targetAngle + 180);
         }
 
-        fields.recordOutput("speed in optimize", targetSpeed);
-        fields.recordOutput("angle after optimize", targetAngle);
-
         return new SwerveModuleState(targetSpeed, new Rotation2d(Math.toRadians(targetAngle)));
     }
 
@@ -123,12 +134,17 @@ public class SwerveModule {
         return io.driveSpeedMPS.getAsDouble();
     }
 
-    public Rotation2d getRotation2d () {
-        return new Rotation2d(Math.toRadians(io.absoluteAngle.getAsDouble()));
+    public Rotation2d getRotation2d() {
+        return Rotation2d.fromDegrees(io.absoluteAngle.getAsDouble());
     }
 
     public SwerveModulePosition getModulePosition() {
         return new SwerveModulePosition(io.driveDistanceMeters.getAsDouble(), getRotation2d());
     }
 
+    public SwerveModulePosition getModulePositionDelta() {
+        return new SwerveModulePosition(
+                currDriveDistance - lastDriveDistance,
+                getRotation2d());
+    }
 }
