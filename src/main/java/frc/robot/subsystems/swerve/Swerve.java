@@ -69,7 +69,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public double getYaw() {
-        return io.yaw.get();
+        return io.yaw.getAsDouble();
     }
 
     public void resetModulesToAbsolute() {
@@ -79,7 +79,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public Rotation2d getRotation2d() {
-        return new Rotation2d(Math.toRadians(io.yaw.get()));
+        return new Rotation2d(Math.toRadians(io.yaw.getAsDouble()));
     }
 
     public SwerveModulePosition[] getModulesPositions() {
