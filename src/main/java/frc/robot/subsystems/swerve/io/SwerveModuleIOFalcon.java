@@ -1,56 +1,60 @@
 package frc.robot.subsystems.swerve.io;
 
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
-import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
-import com.ctre.phoenix.sensors.CANCoder;
-import com.ctre.phoenix.sensors.CANCoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 
 import frc.lib.logfields.LogFieldsTable;
 
 public class SwerveModuleIOFalcon extends SwerveModuleIO {
     private final TalonFX driveMotor;
     private final TalonFX angleMotor;
-    private final CANCoder canCoder;
+    private final CANcoder canCoder;
+
+    private final DutyCycleOut dutyCycleOut = new DutyCycleOut(0);
 
     public SwerveModuleIOFalcon(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
 
         driveMotor = new TalonFX(driveMotorID);
         angleMotor = new TalonFX(angleMotorID);
-        canCoder = new CANCoder(encoderID);
+        canCoder = new CANcoder(encoderID);
 
         TalonFXConfiguration driveMotorConfiguration = new TalonFXConfiguration();
         TalonFXConfiguration angleMotorConfiguration = new TalonFXConfiguration();
-        CANCoderConfiguration canCoderConfiguration = new CANCoderConfiguration();
+        CANcoderConfiguration canCoderConfiguration = new CANcoderConfiguration();
 
-        driveMotor.configAllSettings(driveMotorConfiguration);
-        angleMotor.configAllSettings(angleMotorConfiguration);
-        canCoder.configAllSettings(canCoderConfiguration);
+        driveMotor.getConfigurator().apply(driveMotorConfiguration);
+        angleMotor.getConfigurator().apply(angleMotorConfiguration);
+        canCoder.getConfigurator().apply(canCoderConfiguration);
+
+        
     }
 
     @Override 
     protected double getAbsoluteAngle() {
-        return canCoder.getAbsolutePosition();
+        return canCoder.getAbsolutePosition().getValueAsDouble();
     }
 
     @Override
     protected double getDriveSpeed() {
-        return driveMotor.getSelectedSensorPosition();
+        return driveMotor.getPosition().getValueAsDouble();
     }
 
     @Override
     public void setDriveSpeed(double demandPrcentOutput) {
-        driveMotor.set(ControlMode.PercentOutput, demandPrcentOutput);
+        driveMotor.set(demandPrcentOutput);
     }
 
     @Override
     public void setAngleMotor(double angleTics) {
-        angleMotor.set(ControlMode.Position, angleTics);
+        angleMotor.setControl(dutyCycleOut.withOutput(angleTics));
     }
 
     @Override
     public void setAngleMotorEncoder(double angleDegrees) {
-        angleMotor.setSelectedSensorPosition(angleDegrees);
+        angleMotor.setPosition(angleDegrees);
     }
 }

@@ -49,7 +49,7 @@ public class SwerveModule {
     }
 
     public double getAbsoluteAngle() {
-        return io.absoluteAngle.get() - angleOffSet.getDegrees();
+        return io.absoluteAngle.getAsDouble() - angleOffSet.getDegrees();
     }
 
     public int getModuleNumber() {
@@ -57,7 +57,7 @@ public class SwerveModule {
     }
 
     public double getDistanceMeters() {
-        return Converstions.falconToMeters(io.driveSpeed.get(), SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO);
+        return Converstions.falconToMeters(io.driveSpeed.getAsDouble(), SwerveContants.WHEEL_CIRCUMFERENCE, SwerveContants.GEAR_RATIO);
     }
 
 }

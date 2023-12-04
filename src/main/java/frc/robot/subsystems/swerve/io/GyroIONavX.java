@@ -1,7 +1,6 @@
 package frc.robot.subsystems.swerve.io;
 
 import com.kauailabs.navx.frc.AHRS;
-
 import edu.wpi.first.wpilibj.SerialPort;
 import frc.lib.logfields.LogFieldsTable;
 
