@@ -1,13 +1,15 @@
 package frc.robot.subsystems.swerve.io;
 
-import java.util.function.Supplier;
+import java.util.function.DoubleSupplier;
 
 import frc.lib.logfields.LogFieldsTable;
 import frc.lib.logfields.IOBase;
 
 public abstract class SwerveModuleIO extends IOBase{
-    public final Supplier<Double> absoluteAngle = fields.addDouble("absoluteAngle", this::getAbsoluteAngle);
-    public final Supplier<Double> driveSpeed = fields.addDouble("driveSpeed", this::getDriveSpeed);
+    public final DoubleSupplier absoluteAngle = fields.addDouble("absoluteAngle", this::getAbsoluteAngleDegrees);
+    public final DoubleSupplier integratedEncoderAngle = fields.addDouble("absoluteAngle", this::getIntegratedEncoderDegrees);
+    public final DoubleSupplier driveSpeedMPS = fields.addDouble("driveSpeedMPS", this::getDriveSpeedMPS);
+    public final DoubleSupplier driveDistanceMeters = fields.addDouble("driveDistanceMeters", this::getDriveDistanceMeters);
     
     public SwerveModuleIO(LogFieldsTable fieldsTable) {
         super(fieldsTable);
@@ -15,9 +17,13 @@ public abstract class SwerveModuleIO extends IOBase{
 
     // inputs
 
-    protected abstract double getAbsoluteAngle();
+    protected abstract double getAbsoluteAngleDegrees();
 
-    protected abstract double getDriveSpeed();
+    protected abstract double getDriveSpeedMPS();
+
+    protected abstract double getIntegratedEncoderDegrees();
+
+    protected abstract double getDriveDistanceMeters();
 
     // Outputs
 

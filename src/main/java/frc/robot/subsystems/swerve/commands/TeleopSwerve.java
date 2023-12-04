@@ -1,11 +1,12 @@
 package frc.robot.subsystems.swerve.commands;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.swerve.SwerveContants;
+import static frc.robot.subsystems.swerve.SwerveContants.*;
 
 public class TeleopSwerve extends CommandBase {
     private final Swerve swerve;
@@ -13,14 +14,17 @@ public class TeleopSwerve extends CommandBase {
     private DoubleSupplier xValuesSupplier;
     private DoubleSupplier yValuesSupplier;
     private DoubleSupplier rotationValuesSupplier;
+    private BooleanSupplier isFieldRelative;
 
-    public TeleopSwerve(Swerve swerve, DoubleSupplier xValuesSupplier, DoubleSupplier yValuesSupplier, DoubleSupplier rotationValuesSupplier) {
+    public TeleopSwerve(Swerve swerve, DoubleSupplier xValuesSupplier, DoubleSupplier yValuesSupplier,
+     DoubleSupplier rotationValuesSupplier, BooleanSupplier isFieldRelative) {
         this.swerve = swerve;
         addRequirements(swerve);
 
         this.xValuesSupplier = xValuesSupplier;
         this.yValuesSupplier = yValuesSupplier;
         this.rotationValuesSupplier = rotationValuesSupplier;
+        this.isFieldRelative = isFieldRelative;
     }
 
     @Override
@@ -36,11 +40,22 @@ public class TeleopSwerve extends CommandBase {
         for further reading: https://docs.wpilib.org/he/stable/docs/software/advanced-controls/geometry/coordinate-systems.html
         */
 
-        swerve.drive(
+        if(!isFieldRelative.getAsBoolean()) {
+            swerve.drive(
                 new Translation2d(
                         yValuesSupplier.getAsDouble(),
-                        xValuesSupplier.getAsDouble()).times(SwerveContants.FALCON_MAX_SPEED),
-                rotationValuesSupplier.getAsDouble() * SwerveContants.FALCOM_MAX_ANGULAR_VELOCITY);
+                        -1 * xValuesSupplier.getAsDouble()).times(FALCON_MAX_SPEED_MPS),
+                -1 * rotationValuesSupplier.getAsDouble() * FALCOM_MAX_ANGULAR_VELOCITY,
+                isFieldRelative);
+        }
+        else {
+            swerve.drive(
+                new Translation2d(
+                    yValuesSupplier.getAsDouble(),
+                    -1 * xValuesSupplier.getAsDouble()).times(FALCON_MAX_SPEED_MPS),
+                -1 * rotationValuesSupplier.getAsDouble() * FALCOM_MAX_ANGULAR_VELOCITY,
+                isFieldRelative);
+        }
     }
 
     @Override

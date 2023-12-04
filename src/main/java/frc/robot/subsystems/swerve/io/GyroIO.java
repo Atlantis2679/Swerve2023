@@ -1,12 +1,14 @@
 package frc.robot.subsystems.swerve.io;
 
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 
 import frc.lib.logfields.LogFieldsTable;
 import frc.lib.logfields.IOBase;
 
 public abstract class GyroIO extends IOBase{
-    public final Supplier<Double> yaw = fields.addDouble("yaw", this::getYaw);
+    public final DoubleSupplier yaw = fields.addDouble("yaw", this::getYaw);
+    public final BooleanSupplier isConnected = fields.addBoolean("isConnected", this::isConnected);
     
     public GyroIO(LogFieldsTable fieldsTable) {
         super(fieldsTable);
@@ -15,4 +17,6 @@ public abstract class GyroIO extends IOBase{
     // inputes
 
     protected abstract double getYaw();
+
+    protected abstract boolean isConnected();
 }
