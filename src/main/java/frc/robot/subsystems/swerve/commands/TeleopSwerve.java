@@ -4,11 +4,11 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.swerve.Swerve;
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
-public class TeleopSwerve extends CommandBase {
+public class TeleopSwerve extends Command {
     private final Swerve swerve;
 
     private DoubleSupplier xValuesSupplier;

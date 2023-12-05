@@ -1,5 +1,6 @@
 package frc.robot;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +20,7 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.lib.logfields.LogFieldsTable;
+import frc.lib.tuneables.TuneablesManager;
 
 public class Robot extends LoggedRobot {
     private Command autonomousCommand;
@@ -28,60 +30,82 @@ public class Robot extends LoggedRobot {
         if (isReal()) {
             try {
                 // prefer a mounted USB drive if one is accessible
-                Path usbDir = Paths.get("/u").toRealPath();
-                if (Files.isWritable(usbDir)) {
-                    return usbDir.toString();
+                Path usbDirPath = Paths.get("/u").toRealPath();
+                if (Files.isWritable(usbDirPath)) {
+                    return usbDirPath.toString();
                 }
             } catch (IOException ex) {
                 // ignored
             }
         }
-        String path = Filesystem.getOperatingDirectory().getAbsolutePath();
-        return isReal() ? path : path + "\\logs";
+
+        File directory = Filesystem.getOperatingDirectory();
+        if (isSimulation()) {
+            directory = new File(directory, "simlogs");
+            directory.mkdir();
+        }
+        return directory.getAbsolutePath();
     }
 
     private void initializeAdvantageKit() {
-        Logger logger = Logger.getInstance();
-
-        logger.recordMetadata("RuntimeType", getRuntimeType().toString());
-        logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
-        logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
-        logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
-        logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
-        logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
-
-        if (isSimulation() && Constants.REPLAY) {
+        Logger.recordMetadata("RuntimeType", getRuntimeType().toString());
+        Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
+        Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+        Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+        Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
+        Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+        switch (BuildConstants.DIRTY) {
+            case 0:
+                Logger.recordMetadata("GitDirty", "All changes committed");
+                break;
+            case 1:
+                Logger.recordMetadata("GitDirty", "Uncomitted changes");
+                break;
+            default:
+                Logger.recordMetadata("GitDirty", "Unknown");
+                break;
+        }
+        
+        if (getIsReplay()) {
             setUseTiming(false);
             String logPath = LogFileUtil.findReplayLog();
-            logger.setReplaySource(new WPILOGReader(logPath));
-            logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_replay")));
+            Logger.setReplaySource(new WPILOGReader(logPath));
+            Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_replay")));
         } else {
             String logPath = getLogPath();
 
-            logger.addDataReceiver(new WPILOGWriter(logPath));
-            logger.addDataReceiver(new NT4Publisher() {
+            Logger.addDataReceiver(new WPILOGWriter(logPath));
+            Logger.addDataReceiver(new NT4Publisher() {
                 @Override
                 public void putTable(LogTable table) {
-                    if (table.getBoolean("DriverStation/Test", false))
+                    if (table.get("RealOutputs/Tuning Mode", false))
                         super.putTable(table);
                 }
             });
             LoggedPowerDistribution.getInstance(0, ModuleType.kCTRE);
         }
 
-        logger.start();
+        Logger.start();
+    }
+
+    // in a method to avoid unreachable code warning.
+    private boolean getIsReplay() {
+        return isSimulation() && Constants.REPLAY;
     }
 
     @Override
     public void robotInit() {
         initializeAdvantageKit();
+        enableLiveWindowInTest(false);
         robotContainer = new RobotContainer();
     }
 
     @Override
     public void robotPeriodic() {
         LogFieldsTable.updateAllTables();
+        TuneablesManager.update();
         CommandScheduler.getInstance().run();
+        Logger.recordOutput("Tuning Mode", TuneablesManager.isEnabled());
     }
 
     @Override
@@ -118,7 +142,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void testInit() {
-        CommandScheduler.getInstance().enable();
+        TuneablesManager.enable();
         teleopInit();
     }
 

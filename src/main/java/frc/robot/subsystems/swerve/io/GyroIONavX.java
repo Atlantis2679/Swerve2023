@@ -1,7 +1,6 @@
 package frc.robot.subsystems.swerve.io;
 
 import com.kauailabs.navx.frc.AHRS;
-
 import frc.lib.logfields.LogFieldsTable;
 
 import static frc.robot.RobotMap.*;
