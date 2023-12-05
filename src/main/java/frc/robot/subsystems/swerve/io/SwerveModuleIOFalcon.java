@@ -6,6 +6,8 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 
+import frc.robot.subsystems.swerve.Converstions;
+import static frc.robot.subsystems.swerve.SwerveContants.*;
 import frc.lib.logfields.LogFieldsTable;
 
 public class SwerveModuleIOFalcon extends SwerveModuleIO {
@@ -34,13 +36,23 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     }
 
     @Override 
-    protected double getAbsoluteAngle() {
-        return canCoder.getAbsolutePosition().getValueAsDouble();
+    protected double getAbsoluteAngleDegrees() {
+        return canCoder.getAbsolutePosition();
     }
 
     @Override
-    protected double getDriveSpeed() {
-        return driveMotor.getPosition().getValueAsDouble();
+    protected double getDriveSpeedMPS() {
+        return Converstions.falconToMPS(driveMotor.getSelectedSensorPosition(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
+    }
+
+    @Override
+    protected double getIntegratedEncoderDegrees() {
+        return Converstions.falconToDegrees(angleMotor.getSelectedSensorPosition(), GEAR_RATIO_ANGLE);
+    }
+
+    @Override
+    protected double getDriveDistanceMeters() {
+        return Converstions.falconToMeters(driveMotor.getSelectedSensorPosition(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
     }
 
     @Override
@@ -49,8 +61,9 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     }
 
     @Override
-    public void setAngleMotor(double angleTics) {
-        angleMotor.setControl(dutyCycleOut.withOutput(angleTics));
+    public void setAngleMotor(double degrees) {
+        double angleTics = Converstions.degreesToFalcon(degrees, GEAR_RATIO_ANGLE);
+        angleMotor.set(ControlMode.Position, angleTics);
     }
 
     @Override
