@@ -37,22 +37,22 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
     @Override 
     protected double getAbsoluteAngleDegrees() {
-        return canCoder.getAbsolutePosition();
+        return canCoder.getAbsolutePosition().getValueAsDouble();
     }
 
     @Override
     protected double getDriveSpeedMPS() {
-        return Converstions.falconToMPS(driveMotor.getSelectedSensorPosition(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
+        return Converstions.falconToMPS(driveMotor.getRotorPosition().getValueAsDouble(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
     }
 
     @Override
     protected double getIntegratedEncoderDegrees() {
-        return Converstions.falconToDegrees(angleMotor.getSelectedSensorPosition(), GEAR_RATIO_ANGLE);
+        return Converstions.falconToDegrees(angleMotor.getRotorPosition().getValueAsDouble(), GEAR_RATIO_ANGLE);
     }
 
     @Override
     protected double getDriveDistanceMeters() {
-        return Converstions.falconToMeters(driveMotor.getSelectedSensorPosition(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
+        return Converstions.falconToMeters(driveMotor.getRotorPosition().getValueAsDouble(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     @Override
     public void setAngleMotor(double degrees) {
         double angleTics = Converstions.degreesToFalcon(degrees, GEAR_RATIO_ANGLE);
-        angleMotor.set(ControlMode.Position, angleTics);
+        angleMotor.setControl(dutyCycleOut.withOutput(angleTics));
     }
 
     @Override

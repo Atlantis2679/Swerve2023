@@ -9,19 +9,19 @@ public class Converstions {
     }
 
     public static double CANcoderToDegrees(double positionCounts, double gearRatio) {
-        return positionCounts * (360.0 / (gearRatio * COUNTS_PER_REV_CANCODER));
+        return positionCounts * (360.0 / gearRatio);
     }
 
     public static double degreesToCANcoder(double degrees, double gearRatio) {
-        return degrees / (360.0 / (gearRatio * COUNTS_PER_REV_CANCODER));
+        return degrees / (360.0 / gearRatio);
     }
 
     public static double falconToDegrees(double positionCounts, double gearRatio) {
-        return positionCounts * (360.0 / (gearRatio * COUNTS_PER_REV_FALCON));
+        return positionCounts * (360.0 / gearRatio);
     }
 
     public static double degreesToFalcon(double degrees, double gearRatio) {
-        return degrees / (360.0 / (gearRatio * COUNTS_PER_REV_FALCON));
+        return degrees / (360.0 / gearRatio);
     }
 
     public static double RPMToDegrees(double degrees, double gearRatio) {

@@ -4,19 +4,23 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.util.sendable.Sendable;
+import frc.lib.tuneables.TuneableBuilder;
+import frc.lib.tuneables.TuneableCommand;
 import frc.robot.subsystems.swerve.Swerve;
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
-public class TeleopSwerve extends Command {
+public class Controller extends TuneableCommand {
     private final Swerve swerve;
 
     private DoubleSupplier xValuesSupplier;
     private DoubleSupplier yValuesSupplier;
     private DoubleSupplier rotationValuesSupplier;
     private BooleanSupplier isFieldRelative;
+    private double maxSpeedMPS = FALCOM_MAX_ANGULAR_VELOCITY;
+    private double maxSpeedAngular = FALCON_MAX_SPEED_MPS;
 
-    public TeleopSwerve(Swerve swerve, DoubleSupplier xValuesSupplier, DoubleSupplier yValuesSupplier,
+    public Controller(Swerve swerve, DoubleSupplier xValuesSupplier, DoubleSupplier yValuesSupplier,
      DoubleSupplier rotationValuesSupplier, BooleanSupplier isFieldRelative) {
         this.swerve = swerve;
         addRequirements(swerve);
@@ -65,5 +69,11 @@ public class TeleopSwerve extends Command {
     @Override
     public boolean isFinished() {
         return false;
+    }
+
+    @Override
+    public void initTuneable(TuneableBuilder builder) {
+        builder.addDoubleProperty("Max rotation", () -> maxSpeedAngular, );
+        builder.addDoubleProperty("Max speed MPS", () -> maxSpeedMPS, );
     }
 }
