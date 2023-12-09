@@ -14,7 +14,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     private double encoderIntegratedDegreesSim = 0;
     private double encoderAbsolueDegreesSim = 0;
     private double distanceMeters = 0;
-    private final PIDController pidControllerAngle = new PIDController(0.04, 0, 0);
+    private final PIDController pidControllerAngle = new PIDController(KP, KI, KD);
 
     public SwerveModuleIOSim(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
@@ -60,6 +60,21 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     }
 
     @Override
+    protected double getP() {
+        return pidControllerAngle.getP();
+    }
+
+    @Override
+    protected double getI() {
+        return pidControllerAngle.getI();
+    }
+
+    @Override
+    protected double getD() {
+        return pidControllerAngle.getD();
+    }
+
+    @Override
     public void setDriveSpeed(double demandPrcentOutput) {
         demandPrcentOutput = MathUtil.clamp(demandPrcentOutput, -1, 1);
         driveMotor.setInputVoltage(demandPrcentOutput * 12);
@@ -71,8 +86,23 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     }
 
     @Override
-    public void setAngleMotorEncoder(double angleDegrees) {
+    public void setIntegratedAngleEncoder(double angleDegrees) {
         encoderIntegratedDegreesSim = angleDegrees;
+    }
+
+    @Override
+    public void setP(double p) {
+        pidControllerAngle.setP(p);
+    }
+
+    @Override
+    public void setI(double i) {
+        pidControllerAngle.setI(i);
+    }
+
+    @Override
+    public void setD(double d) {
+        pidControllerAngle.setD(d);
     }
 }
 

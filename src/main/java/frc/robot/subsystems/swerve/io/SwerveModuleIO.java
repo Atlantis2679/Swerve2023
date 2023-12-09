@@ -10,6 +10,9 @@ public abstract class SwerveModuleIO extends IOBase{
     public final DoubleSupplier integratedEncoderAngle = fields.addDouble("absoluteAngle", this::getIntegratedEncoderDegrees);
     public final DoubleSupplier driveSpeedMPS = fields.addDouble("driveSpeedMPS", this::getDriveSpeedMPS);
     public final DoubleSupplier driveDistanceMeters = fields.addDouble("driveDistanceMeters", this::getDriveDistanceMeters);
+    public final DoubleSupplier kP = fields.addDouble("kP", this::getP);
+    public final DoubleSupplier kI = fields.addDouble("kI", this::getI);
+    public final DoubleSupplier kD = fields.addDouble("kD", this::getD);
     
     public SwerveModuleIO(LogFieldsTable fieldsTable) {
         super(fieldsTable);
@@ -25,13 +28,23 @@ public abstract class SwerveModuleIO extends IOBase{
 
     protected abstract double getDriveDistanceMeters();
 
+    protected abstract double getP();
+
+    protected abstract double getI();
+
+    protected abstract double getD();
+
     // Outputs
 
     public abstract void setDriveSpeed(double demand);
 
     public abstract void setAngleMotor(double angle);
 
-    public abstract void setAngleMotorEncoder(double degrees);
+    public abstract void setIntegratedAngleEncoder(double degrees);
 
+    public abstract void setP(double p);
 
+    public abstract void setI(double I);
+
+    public abstract void setD(double d);
 }

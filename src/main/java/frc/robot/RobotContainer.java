@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.swerve.Swerve;
-import frc.robot.subsystems.swerve.commands.TeleopSwerve;
+import frc.robot.subsystems.swerve.commands.SwerveCommands;
 
 public class RobotContainer {
     private final static Swerve swerve = new Swerve();
@@ -19,8 +19,7 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        swerve.setDefaultCommand(new TeleopSwerve(
-                swerve,
+        swerve.setDefaultCommand(new SwerveCommands(swerve).controller(
                 () -> driverController.getLeftX(),
                 () -> -driverController.getLeftY(),
                 () -> driverController.getRightX(),

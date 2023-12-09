@@ -18,4 +18,8 @@ public class SwerveContants {
     public final static double MODULE_2_ANGLE_OFFSET_DEGREES = 0;
     public final static double MODULE_3_ANGLE_OFFSET_DEGREES = 0;
 
+    public final static double KP = 0.04;
+    public final static double KD = 0;
+    public final static double KI = 0;
+
 }

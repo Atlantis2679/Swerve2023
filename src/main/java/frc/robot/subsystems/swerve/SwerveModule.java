@@ -4,6 +4,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.lib.logfields.LogFieldsTable;
+import frc.lib.tuneables.SendableType;
+import frc.lib.tuneables.Tuneable;
+import frc.lib.tuneables.TuneableBuilder;
 import frc.robot.Robot;
 import frc.robot.subsystems.swerve.io.SwerveModuleIO;
 import frc.robot.subsystems.swerve.io.SwerveModuleIOFalcon;
@@ -11,7 +14,7 @@ import frc.robot.subsystems.swerve.io.SwerveModuleIOSim;
 
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
-public class SwerveModule {
+public class SwerveModule implements Tuneable {
 
     private final int moduleNumber;
 
@@ -21,7 +24,7 @@ public class SwerveModule {
     private final int driveMotorID;
     private final int angleMotorID;
     private final int encoderID;
-    private final double angleOffSetDegrees;
+    private double angleOffSetDegrees;
 
     private double lastDriveDistance;
     private double currDriveDistance;
@@ -65,9 +68,9 @@ public class SwerveModule {
     public void resetToAbsolute() {
         double absoluteAngle = getAbsoluteAngle();
 
-        double absoluteAngleInFalcon = Converstions.degreesToFalcon(absoluteAngle, GEAR_RATIO_DRIVE);
+        double absoluteAngleInFalcon = Converstions.degreesToRotations(absoluteAngle, GEAR_RATIO_DRIVE);
 
-        io.setAngleMotorEncoder(absoluteAngleInFalcon);
+        io.setIntegratedAngleEncoder(absoluteAngleInFalcon);
     }
 
     public double getAbsoluteAngle() {
@@ -131,7 +134,7 @@ public class SwerveModule {
     }
 
     public Rotation2d getRotation2d() {
-        return Rotation2d.fromDegrees(io.absoluteAngle.getAsDouble());
+        return Rotation2d.fromDegrees(this.getAbsoluteAngle());
     }
 
     public SwerveModulePosition getModulePosition() {
@@ -142,5 +145,21 @@ public class SwerveModule {
         return new SwerveModulePosition(
                 currDriveDistance - lastDriveDistance,
                 getRotation2d());
+    }
+
+    public void setAbsoluteEncoder(double degrees) {
+        angleOffSetDegrees = degrees;
+    }
+
+    @Override
+    public void initTuneable(TuneableBuilder builder) {
+        builder.addChild("PID module " + getModuleNumber(), (Tuneable) (PIDBuiler) -> {
+            PIDBuiler.setSendableType(SendableType.PID);
+            PIDBuiler.addDoubleProperty("p", () -> io.kP.getAsDouble(), (kPUpdate) -> io.setP(kPUpdate)); 
+            PIDBuiler.addDoubleProperty("i", () -> io.kI.getAsDouble(), (kIUpdate) -> io.setP(kIUpdate)); 
+            PIDBuiler.addDoubleProperty("d", () -> io.kD.getAsDouble(), (kDUpdate) -> io.setP(kDUpdate)); 
+        });
+
+        builder.addDoubleProperty("Change absolue encoder", this::getAbsoluteAngle, this::setAbsoluteEncoder);
     }
 }

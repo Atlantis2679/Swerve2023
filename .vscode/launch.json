@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "java",
+      "name": "Converstions",
+      "request": "launch",
+      "mainClass": "frc.robot.subsystems.swerve.Converstions",
+      "projectName": "Swerve2023 - Copy"
+    },
+    {
       "type": "wpilib",
       "name": "WPILib Desktop Debug",
       "request": "launch",

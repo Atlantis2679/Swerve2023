@@ -4,7 +4,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.util.sendable.Sendable;
 import frc.lib.tuneables.TuneableBuilder;
 import frc.lib.tuneables.TuneableCommand;
 import frc.robot.subsystems.swerve.Swerve;
@@ -73,7 +72,7 @@ public class Controller extends TuneableCommand {
 
     @Override
     public void initTuneable(TuneableBuilder builder) {
-        builder.addDoubleProperty("Max rotation", () -> maxSpeedAngular, );
-        builder.addDoubleProperty("Max speed MPS", () -> maxSpeedMPS, );
+        builder.addDoubleProperty("Max rotation", () -> maxSpeedAngular, (maxSpeedAngularUpdate) -> maxSpeedAngular = maxSpeedAngularUpdate);
+        builder.addDoubleProperty("Max speed MPS", () -> maxSpeedMPS, (maxSpeedMPSUpdate) -> maxSpeedMPS = maxSpeedMPSUpdate);
     }
 }

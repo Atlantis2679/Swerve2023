@@ -13,6 +13,7 @@ import frc.robot.subsystems.swerve.io.GyroIO;
 import frc.robot.subsystems.swerve.io.GyroIONavX;
 import frc.robot.subsystems.swerve.io.GyroIOSim;
 import frc.lib.logfields.LogFieldsTable;
+import frc.lib.tuneables.TuneablesManager;
 import frc.robot.Robot;
 import frc.robot.RobotMap.Module0;
 import frc.robot.RobotMap.Module1;
@@ -67,6 +68,11 @@ public class Swerve extends SubsystemBase {
                 swerveKinematics,
                 gyroIO.isConnected.getAsBoolean() ? getRotation2d() : new Rotation2d(),
                 getModulesPositions());
+
+        TuneablesManager.add("Module 0", modules[0]);
+        TuneablesManager.add("Module 1", modules[1]);
+        TuneablesManager.add("Module 2", modules[2]);
+        TuneablesManager.add("Module 3", modules[3]);
     }
 
     @Override
