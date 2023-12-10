@@ -9,7 +9,7 @@ import frc.lib.tuneables.TuneableCommand;
 import frc.robot.subsystems.swerve.Swerve;
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
-public class Controller extends TuneableCommand {
+public class SwerveController extends TuneableCommand {
     private final Swerve swerve;
 
     private DoubleSupplier xValuesSupplier;
@@ -19,7 +19,7 @@ public class Controller extends TuneableCommand {
     private double maxSpeedMPS = FALCOM_MAX_ANGULAR_VELOCITY;
     private double maxSpeedAngular = FALCON_MAX_SPEED_MPS;
 
-    public Controller(Swerve swerve, DoubleSupplier xValuesSupplier, DoubleSupplier yValuesSupplier,
+    public SwerveController(Swerve swerve, DoubleSupplier xValuesSupplier, DoubleSupplier yValuesSupplier,
      DoubleSupplier rotationValuesSupplier, BooleanSupplier isFieldRelative) {
         this.swerve = swerve;
         addRequirements(swerve);
@@ -42,7 +42,6 @@ public class Controller extends TuneableCommand {
 
         for further reading: https://docs.wpilib.org/he/stable/docs/software/advanced-controls/geometry/coordinate-systems.html
         */
-
         if(!isFieldRelative.getAsBoolean()) {
             swerve.drive(
                 new Translation2d(

@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -20,9 +21,9 @@ public class RobotContainer {
 
     private void configureBindings() {
         swerve.setDefaultCommand(new SwerveCommands(swerve).controller(
-                () -> driverController.getLeftX(),
-                () -> -driverController.getLeftY(),
-                () -> driverController.getRightX(),
+                () -> MathUtil.applyDeadband(driverController.getLeftX(), 0.08),
+                () -> MathUtil.applyDeadband(-driverController.getLeftY(), 0.08),
+                () -> MathUtil.applyDeadband(driverController.getRightX(), 0.08),
                 () -> driverController.leftBumper().getAsBoolean()));
     }
 

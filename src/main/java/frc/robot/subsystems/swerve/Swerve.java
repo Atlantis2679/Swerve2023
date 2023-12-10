@@ -13,6 +13,8 @@ import frc.robot.subsystems.swerve.io.GyroIO;
 import frc.robot.subsystems.swerve.io.GyroIONavX;
 import frc.robot.subsystems.swerve.io.GyroIOSim;
 import frc.lib.logfields.LogFieldsTable;
+import frc.lib.tuneables.SendableType;
+import frc.lib.tuneables.Tuneable;
 import frc.lib.tuneables.TuneablesManager;
 import frc.robot.Robot;
 import frc.robot.RobotMap.Module0;
@@ -69,6 +71,26 @@ public class Swerve extends SubsystemBase {
                 gyroIO.isConnected.getAsBoolean() ? getRotation2d() : new Rotation2d(),
                 getModulesPositions());
 
+        TuneablesManager.add("Modules Angle PID", (Tuneable) (builder) -> {
+            builder.setSendableType(SendableType.PID);
+            builder.addDoubleProperty("p", modules[0]::getP, (p) -> {
+                for (SwerveModule module : modules) {
+                    module.setP(p);
+                }
+            });
+
+            builder.addDoubleProperty("i", modules[0]::getI, (i) -> {
+                for (SwerveModule module : modules) {
+                    module.setI(i);
+                }
+            });
+
+            builder.addDoubleProperty("d", modules[0]::getD, (d) -> {
+                for (SwerveModule module : modules) {
+                    module.setD(d);
+                }
+            });
+        });
         TuneablesManager.add("Module 0", modules[0]);
         TuneablesManager.add("Module 1", modules[1]);
         TuneablesManager.add("Module 2", modules[2]);
@@ -154,8 +176,8 @@ public class Swerve extends SubsystemBase {
 
         for (SwerveModule module : modules) {
             modulePosition[module.getModuleNumber()] = new SwerveModulePosition(
-                    module.getDistanceMeters(),
-                    new Rotation2d(Math.toRadians(module.getAbsoluteAngle())));
+                    module.getDriveDistanceMeters(),
+                    new Rotation2d(Math.toRadians(module.getAbsoluteAngleDegrees())));
         }
 
         return modulePosition;

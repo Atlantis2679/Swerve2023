@@ -15,6 +15,6 @@ public class SwerveCommands {
 
     public TuneableCommand controller(DoubleSupplier xDoubleSupplier, DoubleSupplier yDoubleSupplier,
             DoubleSupplier rotationDoubleSupplier, BooleanSupplier isFieldRelative) {
-        return new Controller(swerve, xDoubleSupplier, yDoubleSupplier, rotationDoubleSupplier, isFieldRelative);
+        return new SwerveController(swerve, xDoubleSupplier, yDoubleSupplier, rotationDoubleSupplier, isFieldRelative);
     }
 }

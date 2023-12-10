@@ -3,7 +3,7 @@ package frc.robot.subsystems.swerve;
 public class Converstions {
     private final static double COUNTS_PER_REV_CANCODER = 4096;
 
-    public static double radiusToCircumstance(double radius) {
+    public static double radiusToCircumference(double radius) {
         return radius * 2 * Math.PI;
     }
 
@@ -35,24 +35,24 @@ public class Converstions {
         return sensorCounts;
     }
 
-    public static double rotationsToMPS(double velocitycounts, double wheelRadiusMeters, double gearRatio) {
-        double wheelRPM = rotationsToRPM(velocitycounts, gearRatio);
-        double wheelMPS = (wheelRPM * radiusToCircumstance(wheelRadiusMeters)) / 60;
+    public static double rotationsToMPS(double velocityRPS, double wheelRadiusMeters, double gearRatio) {
+        double wheelRPM = rotationsToRPM(velocityRPS, gearRatio);
+        double wheelMPS = (wheelRPM * radiusToCircumference(wheelRadiusMeters)) / 60;
         return wheelMPS;
     }
 
     public static double MPSToRotations(double velocity, double wheelRadiusMeters, double gearRatio) {
-        double wheelRPM = ((velocity * 60) / radiusToCircumstance(wheelRadiusMeters));
+        double wheelRPM = ((velocity * 60) / radiusToCircumference(wheelRadiusMeters));
         double wheelVelocity = RPMToRotations(wheelRPM, gearRatio);
         return wheelVelocity;
     }
 
     public static double rotationsToMeters(double positionCounts, double wheelRadiusMeters, double gearRatio) {
-        return positionCounts * (radiusToCircumstance(wheelRadiusMeters) / gearRatio);
+        return positionCounts * (radiusToCircumference(wheelRadiusMeters) / gearRatio);
     }
 
     public static double MetersToRotations(double meters, double wheelRadiusMeters, double gearRatio) {
-        return meters / (radiusToCircumstance(wheelRadiusMeters) / gearRatio);
+        return meters / (radiusToCircumference(wheelRadiusMeters) / gearRatio);
     }
 
     public static double RPMToMPS(double RPM, double wheelRadiusMeters) {

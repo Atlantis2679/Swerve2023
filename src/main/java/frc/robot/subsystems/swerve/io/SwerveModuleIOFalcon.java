@@ -1,14 +1,14 @@
 package frc.robot.subsystems.swerve.io;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 
-import frc.robot.subsystems.swerve.Converstions;
 import static frc.robot.subsystems.swerve.SwerveContants.*;
+
 import frc.lib.logfields.LogFieldsTable;
 
 public class SwerveModuleIOFalcon extends SwerveModuleIO {
@@ -16,7 +16,7 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     private final TalonFX angleMotor;
     private final CANcoder canCoder;
 
-    private final DutyCycleOut dutyCycleOut = new DutyCycleOut(0);
+    private final PositionDutyCycle positionDutyCycleControl = new PositionDutyCycle(0);
     private final Slot0Configs slot0Configs = new Slot0Configs();
 
     public SwerveModuleIOFalcon(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
@@ -28,7 +28,7 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
         TalonFXConfiguration driveMotorConfiguration = new TalonFXConfiguration();
         TalonFXConfiguration angleMotorConfiguration = new TalonFXConfiguration();
-        slot0Configs.kP = KP; 
+        slot0Configs.kP = KP;
         slot0Configs.kI = KI;
         slot0Configs.kD = KD;
         driveMotor.getConfigurator().apply(slot0Configs);
@@ -36,27 +36,27 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
         driveMotor.getConfigurator().apply(driveMotorConfiguration);
         angleMotor.getConfigurator().apply(angleMotorConfiguration);
-        canCoder.getConfigurator().apply(canCoderConfiguration);   
+        canCoder.getConfigurator().apply(canCoderConfiguration);
     }
 
-    @Override 
-    protected double getAbsoluteAngleDegrees() {
+    @Override
+    protected double getAbsoluteAngleRotations() {
         return canCoder.getAbsolutePosition().getValueAsDouble();
     }
 
     @Override
-    protected double getDriveSpeedMPS() {
-        return Converstions.rotationsToMPS(driveMotor.getRotorPosition().getValueAsDouble(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
+    protected double getDriveSpeedRPS() {
+        return driveMotor.getRotorVelocity().getValueAsDouble() / GEAR_RATIO_DRIVE;
     }
 
     @Override
-    protected double getIntegratedEncoderDegrees() {
-        return Converstions.rotationsToDegrees(angleMotor.getRotorPosition().getValueAsDouble(), GEAR_RATIO_ANGLE);
+    protected double getDriveMotorRotations() {
+        return driveMotor.getRotorPosition().getValueAsDouble() / GEAR_RATIO_DRIVE;
     }
 
     @Override
-    protected double getDriveDistanceMeters() {
-        return Converstions.rotationsToMeters(driveMotor.getRotorPosition().getValueAsDouble(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
+    protected double getIntegratedAngleEncoderRotations() {
+        return angleMotor.getRotorPosition().getValueAsDouble() / GEAR_RATIO_ANGLE;
     }
 
     @Override
@@ -75,33 +75,32 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     }
 
     @Override
-    public void setDriveSpeed(double demandPrcentOutput) {
+    public void setDriveSpeedPrecentage(double demandPrcentOutput) {
         driveMotor.set(demandPrcentOutput);
     }
 
     @Override
-    public void setAngleMotor(double degrees) {
-        double angleTics = Converstions.degreesToRotations(degrees, GEAR_RATIO_ANGLE);
-        angleMotor.setControl(dutyCycleOut.withOutput(angleTics));
+    public void setAngleMotorRotations(double rotations) {
+        angleMotor.setControl(positionDutyCycleControl.withPosition(rotations / GEAR_RATIO_ANGLE));
     }
 
     @Override
-    public void setIntegratedAngleEncoder(double angleDegrees) {
-        angleMotor.setPosition(angleDegrees);
+    public void setIntegratedAngleEncoderRotations(double angleRotations) {
+        angleMotor.setPosition(angleRotations / GEAR_RATIO_ANGLE);
     }
 
     @Override
     public void setP(double p) {
-
+        slot0Configs.kP = p;
     }
 
     @Override
     public void setI(double i) {
-
+        slot0Configs.kI = i;
     }
 
     @Override
     public void setD(double d) {
-        
+        slot0Configs.kD = d;
     }
 }
