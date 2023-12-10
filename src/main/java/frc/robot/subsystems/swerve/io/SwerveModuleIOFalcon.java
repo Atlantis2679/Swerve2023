@@ -81,13 +81,13 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     }
 
     @Override
-    public void setAngleMotorRotations(double rotations) {
-        angleMotor.setControl(positionDutyCycleControl.withPosition(rotations / GEAR_RATIO_ANGLE));
+    public void setAngleMotorPositionRotations(double rotations) {
+        angleMotor.setControl(positionDutyCycleControl.withPosition(rotations * GEAR_RATIO_ANGLE));
     }
 
     @Override
     public void setIntegratedAngleEncoderRotations(double angleRotations) {
-        angleMotor.setPosition(angleRotations / GEAR_RATIO_ANGLE);
+        angleMotor.setPosition(angleRotations * GEAR_RATIO_ANGLE);
     }
 
     @Override

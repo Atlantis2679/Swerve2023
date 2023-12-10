@@ -38,7 +38,7 @@ public abstract class SwerveModuleIO extends IOBase{
 
     public abstract void setDriveSpeedPrecentage(double demand);
 
-    public abstract void setAngleMotorRotations(double angle);
+    public abstract void setAngleMotorPositionRotations(double angle);
 
     public abstract void setIntegratedAngleEncoderRotations(double degrees);
 

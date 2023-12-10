@@ -82,7 +82,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     }
 
     @Override
-    public void setAngleMotorRotations(double rotations) {
+    public void setAngleMotorPositionRotations(double rotations) {
         pidControllerAngle.setSetpoint(rotations);
     }
 
