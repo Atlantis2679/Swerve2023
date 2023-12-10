@@ -28,10 +28,10 @@ import java.util.function.BooleanSupplier;
 
 public class Swerve extends SubsystemBase {
     private final LogFieldsTable fieldsTable = new LogFieldsTable(getName());
-
+    
     private final GyroIO gyroIO = Robot.isSimulation()
-            ? new GyroIOSim(fieldsTable)
-            : new GyroIONavX(fieldsTable);
+            ? new GyroIOSim(fieldsTable.getSubTable("Gyro"))
+            : new GyroIONavX(fieldsTable.getSubTable("Gyro"));
 
     private final SwerveDriveOdometry odometry;
 

@@ -16,7 +16,7 @@ import static frc.robot.subsystems.swerve.SwerveContants.*;
 public class SwerveModule implements Tuneable {
     private final int moduleNumber;
 
-    private final LogFieldsTable fields;
+    private final LogFieldsTable fieldsTable;
     private final SwerveModuleIO io;
 
     private final int driveMotorID;
@@ -30,19 +30,19 @@ public class SwerveModule implements Tuneable {
     private final double WHEEL_CIRCUMFERENCE_METERS = 2 * Math.PI * WHEEL_RADIUS_METERS;
 
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-            double angleOffSetDegrees, LogFieldsTable fieldsTable) {
+            double angleOffSetDegrees, LogFieldsTable swerveFieldsTable) {
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
         this.angleMotorID = angleMotorID;
         this.encoderID = encoderID;
         this.angleOffSetDegrees = angleOffSetDegrees;
 
-        fields = fieldsTable.getSubTable("Module " + moduleNumber);
-        fields.update();
+        fieldsTable = swerveFieldsTable.getSubTable("Module " + moduleNumber);
+        fieldsTable.update();
 
         io = Robot.isSimulation()
-                ? new SwerveModuleIOSim(fields, this.driveMotorID, this.angleMotorID, this.encoderID)
-                : new SwerveModuleIOFalcon(fields, this.driveMotorID, this.angleMotorID, this.encoderID);
+                ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID)
+                : new SwerveModuleIOFalcon(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID);
 
         lastDriveDistanceMeters = getDriveDistanceMeters();
         currDriveDistanceMeters = getDriveDistanceMeters();
