@@ -32,6 +32,7 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
         slot0Configs.kI = KI;
         slot0Configs.kD = KD;
         driveMotor.getConfigurator().apply(slot0Configs);
+        positionDutyCycleControl.Slot = 0;
         CANcoderConfiguration canCoderConfiguration = new CANcoderConfiguration();
 
         driveMotor.getConfigurator().apply(driveMotorConfiguration);

@@ -59,7 +59,7 @@ public class SwerveModule implements Tuneable {
         double demandPrcentOutput = desiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS;
         io.setDriveSpeedPrecentage(demandPrcentOutput);
 
-        // only rotate when speed is greater then 1%, to avoid ruining wheels.
+        // only rotate when speed is greater then 1%, to avoid damaging wheels.
         if (Math.abs(desiredState.speedMetersPerSecond) > (FALCON_MAX_SPEED_MPS * 0.01)) {
             io.setAngleMotorRotations(desiredState.angle.getRotations());
         }
