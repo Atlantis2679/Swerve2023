@@ -6,10 +6,13 @@ import frc.lib.logfields.LogFieldsTable;
 import frc.lib.logfields.IOBase;
 
 public abstract class SwerveModuleIO extends IOBase{
-    public final DoubleSupplier absoluteAngle = fields.addDouble("absoluteAngle", this::getAbsoluteAngleDegrees);
-    public final DoubleSupplier integratedEncoderAngle = fields.addDouble("absoluteAngle", this::getIntegratedEncoderDegrees);
-    public final DoubleSupplier driveSpeedMPS = fields.addDouble("driveSpeedMPS", this::getDriveSpeedMPS);
-    public final DoubleSupplier driveDistanceMeters = fields.addDouble("driveDistanceMeters", this::getDriveDistanceMeters);
+    public final DoubleSupplier absoluteAngleRotations = fields.addDouble("absoluteAngleRotations", this::getAbsoluteAngleRotations);
+    public final DoubleSupplier integratedEncoderAngleRotations = fields.addDouble("integratedEncoderAngleRotations", this::getIntegratedAngleEncoderRotations);
+    public final DoubleSupplier driveSpeedRPS = fields.addDouble("driveSpeedRPS", this::getDriveSpeedRPS);
+    public final DoubleSupplier driveMotorRotations = fields.addDouble("driveMotorRotations", this::getDriveMotorRotations);
+    public final DoubleSupplier kP = fields.addDouble("kP", this::getP);
+    public final DoubleSupplier kI = fields.addDouble("kI", this::getI);
+    public final DoubleSupplier kD = fields.addDouble("kD", this::getD);
     
     public SwerveModuleIO(LogFieldsTable fieldsTable) {
         super(fieldsTable);
@@ -17,21 +20,31 @@ public abstract class SwerveModuleIO extends IOBase{
 
     // inputs
 
-    protected abstract double getAbsoluteAngleDegrees();
+    protected abstract double getAbsoluteAngleRotations();
 
-    protected abstract double getDriveSpeedMPS();
+    protected abstract double getDriveSpeedRPS();
 
-    protected abstract double getIntegratedEncoderDegrees();
+    protected abstract double getIntegratedAngleEncoderRotations();
 
-    protected abstract double getDriveDistanceMeters();
+    protected abstract double getDriveMotorRotations();
+
+    protected abstract double getP();
+
+    protected abstract double getI();
+
+    protected abstract double getD();
 
     // Outputs
 
-    public abstract void setDriveSpeed(double demand);
+    public abstract void setDriveSpeedPrecentage(double demand);
 
-    public abstract void setAngleMotor(double angle);
+    public abstract void setAngleMotorPositionRotations(double angle);
 
-    public abstract void setAngleMotorEncoder(double degrees);
+    public abstract boolean setIntegratedEncoderAngleEncoderRotations(double degrees);
 
+    public abstract void setP(double p);
 
+    public abstract void setI(double I);
+
+    public abstract void setD(double d);
 }

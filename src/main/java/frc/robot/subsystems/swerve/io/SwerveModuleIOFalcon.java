@@ -1,13 +1,14 @@
 package frc.robot.subsystems.swerve.io;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
 
-import frc.robot.subsystems.swerve.Converstions;
 import static frc.robot.subsystems.swerve.SwerveContants.*;
+
 import frc.lib.logfields.LogFieldsTable;
 
 public class SwerveModuleIOFalcon extends SwerveModuleIO {
@@ -15,7 +16,8 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     private final TalonFX angleMotor;
     private final CANcoder canCoder;
 
-    private final DutyCycleOut dutyCycleOut = new DutyCycleOut(0);
+    private final PositionDutyCycle positionDutyCycleControl = new PositionDutyCycle(0);
+    private final Slot0Configs slot0Configs = new Slot0Configs();
 
     public SwerveModuleIOFalcon(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
@@ -26,48 +28,83 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
         TalonFXConfiguration driveMotorConfiguration = new TalonFXConfiguration();
         TalonFXConfiguration angleMotorConfiguration = new TalonFXConfiguration();
+        slot0Configs.kP = KP;
+        slot0Configs.kI = KI;
+        slot0Configs.kD = KD;
+        driveMotor.getConfigurator().apply(slot0Configs);
+        positionDutyCycleControl.Slot = 0;
         CANcoderConfiguration canCoderConfiguration = new CANcoderConfiguration();
 
         driveMotor.getConfigurator().apply(driveMotorConfiguration);
         angleMotor.getConfigurator().apply(angleMotorConfiguration);
         canCoder.getConfigurator().apply(canCoderConfiguration);
-
-        
-    }
-
-    @Override 
-    protected double getAbsoluteAngleDegrees() {
-        return canCoder.getAbsolutePosition();
     }
 
     @Override
-    protected double getDriveSpeedMPS() {
-        return Converstions.falconToMPS(driveMotor.getSelectedSensorPosition(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
+    protected double getAbsoluteAngleRotations() {
+        return canCoder.getAbsolutePosition().getValueAsDouble();
     }
 
     @Override
-    protected double getIntegratedEncoderDegrees() {
-        return Converstions.falconToDegrees(angleMotor.getSelectedSensorPosition(), GEAR_RATIO_ANGLE);
+    protected double getDriveSpeedRPS() {
+        return driveMotor.getRotorVelocity().getValueAsDouble() / GEAR_RATIO_DRIVE;
     }
 
     @Override
-    protected double getDriveDistanceMeters() {
-        return Converstions.falconToMeters(driveMotor.getSelectedSensorPosition(), WHEEL_RADIUS_METERS, GEAR_RATIO_DRIVE);
+    protected double getDriveMotorRotations() {
+        return driveMotor.getRotorPosition().getValueAsDouble() / GEAR_RATIO_DRIVE;
     }
 
     @Override
-    public void setDriveSpeed(double demandPrcentOutput) {
+    protected double getIntegratedAngleEncoderRotations() {
+        return angleMotor.getRotorPosition().getValueAsDouble() / GEAR_RATIO_ANGLE;
+    }
+
+    @Override
+    protected double getP() {
+        return slot0Configs.kP;
+    }
+
+    @Override
+    protected double getI() {
+        return slot0Configs.kI;
+    }
+
+    @Override
+    protected double getD() {
+        return slot0Configs.kD;
+    }
+
+    @Override
+    public void setDriveSpeedPrecentage(double demandPrcentOutput) {
         driveMotor.set(demandPrcentOutput);
     }
 
     @Override
-    public void setAngleMotor(double degrees) {
-        double angleTics = Converstions.degreesToFalcon(degrees, GEAR_RATIO_ANGLE);
-        angleMotor.set(ControlMode.Position, angleTics);
+    public void setAngleMotorPositionRotations(double rotations) {
+        angleMotor.setControl(positionDutyCycleControl.withPosition(rotations * GEAR_RATIO_ANGLE));
     }
 
     @Override
-    public void setAngleMotorEncoder(double angleDegrees) {
-        angleMotor.setPosition(angleDegrees);
+    public boolean setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
+        return angleMotor.setPosition(angleRotations * GEAR_RATIO_ANGLE).isOK();
+    }
+
+    @Override
+    public void setP(double p) {
+        slot0Configs.kP = p;
+        angleMotor.getConfigurator().apply(slot0Configs);
+    }
+
+    @Override
+    public void setI(double i) {
+        slot0Configs.kI = i;
+        angleMotor.getConfigurator().apply(slot0Configs);
+    }
+
+    @Override
+    public void setD(double d) {
+        slot0Configs.kD = d;
+        angleMotor.getConfigurator().apply(slot0Configs);
     }
 }

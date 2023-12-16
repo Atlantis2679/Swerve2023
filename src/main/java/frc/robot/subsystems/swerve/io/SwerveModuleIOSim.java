@@ -5,74 +5,106 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.lib.logfields.LogFieldsTable;
-import frc.robot.subsystems.swerve.Converstions;
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
 public class SwerveModuleIOSim extends SwerveModuleIO {
-    private final FlywheelSim driveMotor;
-    private final FlywheelSim angleMotor;
-    private double encoderIntegratedDegreesSim = 0;
-    private double encoderAbsolueDegreesSim = 0;
-    private double distanceMeters = 0;
-    private final PIDController pidControllerAngle = new PIDController(0.04, 0, 0);
+    private final FlywheelSim driveMotorSim;
+    private final FlywheelSim angleMotorSim;
+    private double simEncoderIntegratedRotations = 0;
+    private double simEncoderAbsolueRotations = 0;
+    private double simDriveRotations = 0;
+    private final PIDController pidControllerAngle = new PIDController(10, 0, 0);
 
     public SwerveModuleIOSim(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
 
-        driveMotor = new FlywheelSim(DCMotor.getFalcon500(1), GEAR_RATIO_DRIVE, 0.05);
-        angleMotor = new FlywheelSim(DCMotor.getFalcon500(1), GEAR_RATIO_ANGLE, 0.004);
+        driveMotorSim = new FlywheelSim(DCMotor.getFalcon500(1), GEAR_RATIO_DRIVE, 0.05);
+        angleMotorSim = new FlywheelSim(DCMotor.getFalcon500(1), GEAR_RATIO_ANGLE, 0.004);
     }
 
     @Override
     public void periodicBeforeFields() {
-        double angleDiffRad = angleMotor.getAngularVelocityRadPerSec() * 0.02;
-        encoderIntegratedDegreesSim += Math.toDegrees(angleDiffRad);
-        encoderAbsolueDegreesSim = encoderIntegratedDegreesSim % 360;
+        double angleRPS = angleMotorSim.getAngularVelocityRPM() / 60;
+        double angleRotationsDiff = angleRPS * 0.02;
+        simEncoderIntegratedRotations += angleRotationsDiff;
+        simEncoderAbsolueRotations = simEncoderIntegratedRotations % 1;
 
-        driveMotor.update(0.02);
-        angleMotor.update(0.02);
+        driveMotorSim.update(0.02);
+        angleMotorSim.update(0.02);
 
-        double angleDiffDistanceRad = driveMotor.getAngularVelocityRadPerSec() * 0.02;
-        distanceMeters += angleDiffDistanceRad * WHEEL_RADIUS_METERS;
+        double driveRPS = driveMotorSim.getAngularVelocityRPM() / 60;
+        double driveRotationsDiff = driveRPS * 0.02;
+        simDriveRotations += driveRotationsDiff;
 
-        double PIDResultDegrees = (pidControllerAngle.calculate(getIntegratedEncoderDegrees()));
-        angleMotor.setInputVoltage(PIDResultDegrees);
+        double AnglePIDResult = pidControllerAngle.calculate(getIntegratedAngleEncoderRotations());
+        angleMotorSim.setInputVoltage(AnglePIDResult);
     }
 
     @Override 
-    protected double getAbsoluteAngleDegrees() {
-        return encoderAbsolueDegreesSim;
+    protected double getAbsoluteAngleRotations() {
+        return simEncoderAbsolueRotations;
     }
 
     @Override
-    protected double getDriveSpeedMPS() {
-        return Converstions.RPMToMPS(driveMotor.getAngularVelocityRPM(), WHEEL_RADIUS_METERS);
+    protected double getDriveSpeedRPS() {
+        return driveMotorSim.getAngularVelocityRPM() / 60;
     }
 
     @Override
-    protected double getIntegratedEncoderDegrees() {
-        return encoderIntegratedDegreesSim;
+    protected double getIntegratedAngleEncoderRotations() {
+        return simEncoderIntegratedRotations;
     }
 
     @Override
-    protected double getDriveDistanceMeters() {
-        return distanceMeters;
+    protected double getDriveMotorRotations() {
+        return simDriveRotations;
     }
 
     @Override
-    public void setDriveSpeed(double demandPrcentOutput) {
+    protected double getP() {
+        return pidControllerAngle.getP();
+    }
+
+    @Override
+    protected double getI() {
+        return pidControllerAngle.getI();
+    }
+
+    @Override
+    protected double getD() {
+        return pidControllerAngle.getD();
+    }
+
+    @Override
+    public void setDriveSpeedPrecentage(double demandPrcentOutput) {
         demandPrcentOutput = MathUtil.clamp(demandPrcentOutput, -1, 1);
-        driveMotor.setInputVoltage(demandPrcentOutput * 12);
+        driveMotorSim.setInputVoltage(demandPrcentOutput * 12);
     }
 
     @Override
-    public void setAngleMotor(double degrees) {
-        pidControllerAngle.setSetpoint(degrees);
+    public void setAngleMotorPositionRotations(double rotations) {
+        pidControllerAngle.setSetpoint(rotations);
     }
 
     @Override
-    public void setAngleMotorEncoder(double angleDegrees) {
-        encoderIntegratedDegreesSim = angleDegrees;
+    public boolean setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
+        simEncoderIntegratedRotations = angleRotations;
+        return true;
+    }
+
+    @Override
+    public void setP(double p) {
+        pidControllerAngle.setP(p);
+    }
+
+    @Override
+    public void setI(double i) {
+        pidControllerAngle.setI(i);
+    }
+
+    @Override
+    public void setD(double d) {
+        pidControllerAngle.setD(d);
     }
 }
 

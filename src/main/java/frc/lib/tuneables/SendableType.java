@@ -2,7 +2,8 @@ package frc.lib.tuneables;
 
 public enum SendableType {
     NONE(null),
-    LIST("LW Subsystem");
+    LIST("LW Subsystem"),
+    PID("PIDController");
 
     private String stringType;
 
