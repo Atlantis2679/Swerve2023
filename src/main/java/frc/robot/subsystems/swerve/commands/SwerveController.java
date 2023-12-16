@@ -4,23 +4,27 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.lib.tuneables.SendableType;
 import frc.lib.tuneables.TuneableBuilder;
 import frc.lib.tuneables.TuneableCommand;
+import frc.lib.tuneables.TuneablesTable;
+import frc.lib.valueholders.DoubleHolder;
 import frc.robot.subsystems.swerve.Swerve;
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
 public class SwerveController extends TuneableCommand {
     private final Swerve swerve;
+    private TuneablesTable tuneablesTable = new TuneablesTable(SendableType.LIST);
 
     private DoubleSupplier xValuesSupplier;
     private DoubleSupplier yValuesSupplier;
     private DoubleSupplier rotationValuesSupplier;
     private BooleanSupplier isFieldRelative;
-    private double maxSpeedMPS = FALCOM_MAX_ANGULAR_VELOCITY;
-    private double maxSpeedAngular = FALCON_MAX_SPEED_MPS;
+
+    private DoubleHolder maxSpeedAngular = tuneablesTable.addNumber("Max Angular Speed", FALCON_MAX_SPEED_MPS);
 
     public SwerveController(Swerve swerve, DoubleSupplier xValuesSupplier, DoubleSupplier yValuesSupplier,
-     DoubleSupplier rotationValuesSupplier, BooleanSupplier isFieldRelative) {
+            DoubleSupplier rotationValuesSupplier, BooleanSupplier isFieldRelative) {
         this.swerve = swerve;
         addRequirements(swerve);
 
@@ -36,28 +40,21 @@ public class SwerveController extends TuneableCommand {
 
     @Override
     public void execute() {
-        /* the x and y are swapped in the translation2d because we're using Field Coordinate system
-        * and when using this system the x from the view of the drivers is the depth of a field 
-        * while the y is horizonal to the field.
-
-        for further reading: https://docs.wpilib.org/he/stable/docs/software/advanced-controls/geometry/coordinate-systems.html
-        */
-        if(!isFieldRelative.getAsBoolean()) {
-            swerve.drive(
+        /*
+         * the x and y are swapped in the translation2d because we're using Field
+         * Coordinate system and when using this system the x from the view of the
+         * drivers is the depth of a field while the y is horizonal to the field.
+         * 
+         * for further reading:
+         * https://docs.wpilib.org/he/stable/docs/software/advanced-controls/geometry/
+         * coordinate-systems.html
+         */
+        swerve.drive(
                 new Translation2d(
                         yValuesSupplier.getAsDouble(),
                         -1 * xValuesSupplier.getAsDouble()).times(FALCON_MAX_SPEED_MPS),
-                -1 * rotationValuesSupplier.getAsDouble() * FALCOM_MAX_ANGULAR_VELOCITY,
-                isFieldRelative);
-        }
-        else {
-            swerve.drive(
-                new Translation2d(
-                    yValuesSupplier.getAsDouble(),
-                    -1 * xValuesSupplier.getAsDouble()).times(FALCON_MAX_SPEED_MPS),
-                -1 * rotationValuesSupplier.getAsDouble() * FALCOM_MAX_ANGULAR_VELOCITY,
-                isFieldRelative);
-        }
+                -1 * rotationValuesSupplier.getAsDouble() * maxSpeedAngular.get(),
+                isFieldRelative.getAsBoolean());
     }
 
     @Override
@@ -71,7 +68,6 @@ public class SwerveController extends TuneableCommand {
 
     @Override
     public void initTuneable(TuneableBuilder builder) {
-        builder.addDoubleProperty("Max rotation", () -> maxSpeedAngular, (maxSpeedAngularUpdate) -> maxSpeedAngular = maxSpeedAngularUpdate);
-        builder.addDoubleProperty("Max speed MPS", () -> maxSpeedMPS, (maxSpeedMPSUpdate) -> maxSpeedMPS = maxSpeedMPSUpdate);
+        tuneablesTable.initTuneable(builder);
     }
 }

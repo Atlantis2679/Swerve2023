@@ -26,6 +26,7 @@ public class SwerveModule implements Tuneable {
 
     private double lastDriveDistanceMeters;
     private double currDriveDistanceMeters;
+    private boolean encoderResetToAbsoluteQueued = false;
 
     private final double WHEEL_CIRCUMFERENCE_METERS = 2 * Math.PI * WHEEL_RADIUS_METERS;
 
@@ -46,6 +47,8 @@ public class SwerveModule implements Tuneable {
 
         lastDriveDistanceMeters = getDriveDistanceMeters();
         currDriveDistanceMeters = getDriveDistanceMeters();
+
+        io.setIntegratedEncoderAngleEncoderRotations(getAbsoluteAngleDegrees() / 360);
     }
 
     public void periodic() {
@@ -53,20 +56,30 @@ public class SwerveModule implements Tuneable {
         currDriveDistanceMeters = getDriveDistanceMeters();
     }
 
-    public void setDesiredState(SwerveModuleState desiredState) {
-        desiredState = optimize(desiredState, getIntegratedEncoderAngleDegrees());
-
-        double demandPrcentOutput = desiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS;
-        io.setDriveSpeedPrecentage(demandPrcentOutput);
-
-        // only rotate when speed is greater then 1%, to avoid damaging wheels.
-        if (Math.abs(desiredState.speedMetersPerSecond) > (FALCON_MAX_SPEED_MPS * 0.01)) {
-            io.setAngleMotorPositionRotations(desiredState.angle.getRotations());
+    public void setDesiredState(SwerveModuleState desiredState, boolean preventJittering) {
+        if (preventJittering && Math.abs(desiredState.speedMetersPerSecond) < FALCON_MAX_SPEED_MPS * 0.01) {
+            io.setDriveSpeedPrecentage(0);
+            return;
         }
+
+        final double currentAngleDegrees;
+
+        if (encoderResetToAbsoluteQueued) {
+            boolean success = io.setIntegratedEncoderAngleEncoderRotations(getAbsoluteAngleDegrees() / 360);
+            currentAngleDegrees = success ? getAbsoluteAngleDegrees() : getIntegratedEncoderAngleDegrees();
+            encoderResetToAbsoluteQueued = false;
+        } else {
+            currentAngleDegrees = getIntegratedEncoderAngleDegrees();
+        }
+
+        SwerveModuleState optimizedDesiredState = optimize(desiredState, currentAngleDegrees);
+
+        io.setDriveSpeedPrecentage(optimizedDesiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS);
+        io.setAngleMotorPositionRotations(optimizedDesiredState.angle.getRotations());
     }
 
-    public void resetToAbsolute() {
-        io.setIntegratedAngleEncoderRotations(io.absoluteAngleRotations.getAsDouble());
+    public void queueResetToAbsolute() {
+        encoderResetToAbsoluteQueued = true;
     }
 
     public double getAbsoluteAngleDegrees() {
@@ -83,42 +96,6 @@ public class SwerveModule implements Tuneable {
 
     public double getIntegratedEncoderAngleDegrees() {
         return io.integratedEncoderAngleRotations.getAsDouble() * 360;
-    }
-
-    public double placeInAppropriateScope(double currentAngleDegrees, double targetAngleDegrees) {
-        int scope = (int) currentAngleDegrees / 360;
-
-        double lowerBound = currentAngleDegrees >= 0 ? scope * 360 : (scope - 1) * 360;
-        double upperBound = currentAngleDegrees >= 0 ? (scope + 1) * 360 : scope * 360;
-
-        while (targetAngleDegrees < lowerBound) {
-            targetAngleDegrees += 360;
-        }
-        while (targetAngleDegrees > upperBound) {
-            targetAngleDegrees -= 360;
-        }
-
-        if (targetAngleDegrees - currentAngleDegrees > 180) {
-            targetAngleDegrees -= 360;
-        } else if (targetAngleDegrees - currentAngleDegrees < -180) {
-            targetAngleDegrees += 360;
-        }
-
-        return targetAngleDegrees;
-    }
-
-    public SwerveModuleState optimize(SwerveModuleState desiredState, double currentAngleDegrees) {
-        double targetAngle = placeInAppropriateScope(currentAngleDegrees, desiredState.angle.getDegrees());
-        double targetSpeed = desiredState.speedMetersPerSecond;
-
-        double delta = targetAngle - currentAngleDegrees;
-
-        if (Math.abs(delta) > 90) {
-            targetSpeed = -targetSpeed;
-            targetAngle = delta > 0 ? (targetAngle - 180) : (targetAngle + 180);
-        }
-
-        return new SwerveModuleState(targetSpeed, new Rotation2d(Math.toRadians(targetAngle)));
     }
 
     public SwerveModuleState getModuleState() {
@@ -144,7 +121,8 @@ public class SwerveModule implements Tuneable {
     }
 
     public void setAbsoluteEncoderAngle(double degrees) {
-        angleOffSetDegrees = degrees;
+        angleOffSetDegrees = (io.absoluteAngleRotations.getAsDouble() * 360) - degrees;
+        queueResetToAbsolute();
     }
 
     public double getP() {
@@ -171,6 +149,42 @@ public class SwerveModule implements Tuneable {
         io.setD(d);
     }
 
+    private SwerveModuleState optimize(SwerveModuleState desiredState, double currentAngleDegrees) {
+        double targetAngleDegrees = placeInAppropriateScope(currentAngleDegrees, desiredState.angle.getDegrees());
+        double targetSpeedMPS = desiredState.speedMetersPerSecond;
+
+        double delta = targetAngleDegrees - currentAngleDegrees;
+
+        if (Math.abs(delta) > 90) {
+            targetSpeedMPS = -targetSpeedMPS;
+            targetAngleDegrees = delta > 0 ? (targetAngleDegrees - 180) : (targetAngleDegrees + 180);
+        }
+
+        return new SwerveModuleState(targetSpeedMPS, Rotation2d.fromDegrees(targetAngleDegrees));
+    }
+
+    private double placeInAppropriateScope(double currentAngleDegrees, double targetAngleDegrees) {
+        int scope = (int) currentAngleDegrees / 360;
+
+        double lowerBound = currentAngleDegrees >= 0 ? scope * 360 : (scope - 1) * 360;
+        double upperBound = currentAngleDegrees >= 0 ? (scope + 1) * 360 : scope * 360;
+
+        while (targetAngleDegrees < lowerBound) {
+            targetAngleDegrees += 360;
+        }
+        while (targetAngleDegrees > upperBound) {
+            targetAngleDegrees -= 360;
+        }
+
+        if (targetAngleDegrees - currentAngleDegrees > 180) {
+            targetAngleDegrees -= 360;
+        } else if (targetAngleDegrees - currentAngleDegrees < -180) {
+            targetAngleDegrees += 360;
+        }
+
+        return targetAngleDegrees;
+    }
+
     @Override
     public void initTuneable(TuneableBuilder builder) {
         // builder.addChild("PID module " + getModuleNumber(), (Tuneable) (PIDBuiler) ->
@@ -183,7 +197,8 @@ public class SwerveModule implements Tuneable {
         // PIDBuiler.addDoubleProperty("d", () -> io.kD.getAsDouble(), (kDUpdate) ->
         // io.setP(kDUpdate));
         // });
-        builder.addDoubleProperty("Absolute Angle Degrees", this::getAbsoluteAngleDegrees,
+        builder.addDoubleProperty("Tuneable Absolute Angle Degrees", this::getAbsoluteAngleDegrees,
                 this::setAbsoluteEncoderAngle);
+        builder.addDoubleProperty("Tuneable Offset", () -> angleOffSetDegrees, val -> angleOffSetDegrees = val);
     }
 }

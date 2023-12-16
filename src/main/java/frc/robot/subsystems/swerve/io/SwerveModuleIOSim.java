@@ -36,7 +36,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
         double driveRotationsDiff = driveRPS * 0.02;
         simDriveRotations += driveRotationsDiff;
 
-        double AnglePIDResult = (pidControllerAngle.calculate(getIntegratedAngleEncoderRotations()));
+        double AnglePIDResult = pidControllerAngle.calculate(getIntegratedAngleEncoderRotations());
         angleMotorSim.setInputVoltage(AnglePIDResult);
     }
 
@@ -87,8 +87,9 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     }
 
     @Override
-    public void setIntegratedAngleEncoderRotations(double angleRotations) {
+    public boolean setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
         simEncoderIntegratedRotations = angleRotations;
+        return true;
     }
 
     @Override

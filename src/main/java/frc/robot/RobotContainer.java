@@ -8,23 +8,35 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.lib.tuneables.SendableType;
+import frc.lib.tuneables.TuneableCommand;
+import frc.lib.tuneables.TuneablesManager;
+import frc.lib.tuneables.TuneablesTable;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.commands.SwerveCommands;
 
 public class RobotContainer {
-    private final static Swerve swerve = new Swerve();
-    public final CommandXboxController driverController = new CommandXboxController(RobotMap.Controllers.DRIVER_PORT);
+    private final TuneablesTable swerveTunenablesCommandTable = new TuneablesTable(SendableType.LIST); 
+    private final Swerve swerve = new Swerve();
+    private final CommandXboxController driverController = new CommandXboxController(RobotMap.Controllers.DRIVER_PORT);
+    private final SwerveCommands swerveCommands = new SwerveCommands(swerve);
 
     public RobotContainer() {
         configureBindings();
+        TuneablesManager.add("SwerveCommands", swerveTunenablesCommandTable);
     }
 
     private void configureBindings() {
-        swerve.setDefaultCommand(new SwerveCommands(swerve).controller(
-                () -> MathUtil.applyDeadband(driverController.getLeftX(), 0.08),
-                () -> MathUtil.applyDeadband(-driverController.getLeftY(), 0.08),
-                () -> MathUtil.applyDeadband(driverController.getRightX(), 0.08),
-                () -> driverController.leftBumper().getAsBoolean()));
+        swerve.setDefaultCommand(registerSwerveCommand("controller", swerveCommands.controller(
+                () -> MathUtil.applyDeadband(driverController.getLeftX(), 0.05),
+                () -> MathUtil.applyDeadband(-driverController.getLeftY(), 0.05),
+                () -> MathUtil.applyDeadband(driverController.getRightX(), 0.05),
+                () -> driverController.leftBumper().getAsBoolean())));
+    }
+
+    private TuneableCommand registerSwerveCommand(String name, TuneableCommand command) {
+        swerveTunenablesCommandTable.addChild(name, command.fullTuneable());
+        return command;
     }
 
     public Command getAutonomousCommand() {

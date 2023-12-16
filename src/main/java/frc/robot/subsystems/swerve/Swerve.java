@@ -16,6 +16,7 @@ import frc.lib.logfields.LogFieldsTable;
 import frc.lib.tuneables.SendableType;
 import frc.lib.tuneables.Tuneable;
 import frc.lib.tuneables.TuneablesManager;
+import frc.lib.tuneables.TuneablesTable;
 import frc.robot.Robot;
 import frc.robot.RobotMap.Module0;
 import frc.robot.RobotMap.Module1;
@@ -24,11 +25,10 @@ import frc.robot.RobotMap.Module3;
 
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
-import java.util.function.BooleanSupplier;
-
 public class Swerve extends SubsystemBase {
     private final LogFieldsTable fieldsTable = new LogFieldsTable(getName());
-    
+    private final TuneablesTable tuneablesTable = new TuneablesTable(SendableType.LIST);
+
     private final GyroIO gyroIO = Robot.isSimulation()
             ? new GyroIOSim(fieldsTable.getSubTable("Gyro"))
             : new GyroIONavX(fieldsTable.getSubTable("Gyro"));
@@ -64,37 +64,38 @@ public class Swerve extends SubsystemBase {
 
     public Swerve() {
         fieldsTable.update();
-        resetModulesToAbsolute();
 
         odometry = new SwerveDriveOdometry(
                 swerveKinematics,
                 gyroIO.isConnected.getAsBoolean() ? getRotation2d() : new Rotation2d(),
                 getModulesPositions());
 
-        TuneablesManager.add("Modules Angle PID", (Tuneable) (builder) -> {
-            builder.setSendableType(SendableType.PID);
-            builder.addDoubleProperty("p", modules[0]::getP, (p) -> {
+        tuneablesTable.addChild("Modules Angle PID", (Tuneable) (builderPID) -> {
+            builderPID.setSendableType(SendableType.PID);
+            builderPID.addDoubleProperty("p", modules[0]::getP, (p) -> {
                 for (SwerveModule module : modules) {
                     module.setP(p);
                 }
             });
 
-            builder.addDoubleProperty("i", modules[0]::getI, (i) -> {
+            builderPID.addDoubleProperty("i", modules[0]::getI, (i) -> {
                 for (SwerveModule module : modules) {
                     module.setI(i);
                 }
             });
 
-            builder.addDoubleProperty("d", modules[0]::getD, (d) -> {
+            builderPID.addDoubleProperty("d", modules[0]::getD, (d) -> {
                 for (SwerveModule module : modules) {
                     module.setD(d);
                 }
             });
         });
-        TuneablesManager.add("Module 0", modules[0]);
-        TuneablesManager.add("Module 1", modules[1]);
-        TuneablesManager.add("Module 2", modules[2]);
-        TuneablesManager.add("Module 3", modules[3]);
+        tuneablesTable.addChild("Module 0", modules[0]);
+        tuneablesTable.addChild("Module 1", modules[1]);
+        tuneablesTable.addChild("Module 2", modules[2]);
+        tuneablesTable.addChild("Module 3", modules[3]);
+
+        TuneablesManager.add("Swerve", tuneablesTable);
     }
 
     @Override
@@ -125,10 +126,10 @@ public class Swerve extends SubsystemBase {
                 modules[3].getModuleState());
     }
 
-    public void drive(Translation2d translation, double angularVelocity, BooleanSupplier isFieldRelative) {
+    public void drive(Translation2d translation, double angularVelocity, boolean isFieldRelative) {
         ChassisSpeeds desiredChassisSpeeds;
 
-        if (!isFieldRelative.getAsBoolean()) {
+        if (!isFieldRelative) {
             desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
                     translation.getX(),
                     translation.getY(),
@@ -153,7 +154,7 @@ public class Swerve extends SubsystemBase {
                 swerveModuleStates[3]);
 
         for (SwerveModule module : modules) {
-            module.setDesiredState(swerveModuleStates[module.getModuleNumber()]);
+            module.setDesiredState(swerveModuleStates[module.getModuleNumber()], true);
         }
     }
 
@@ -161,9 +162,9 @@ public class Swerve extends SubsystemBase {
         return odometry.getPoseMeters().getRotation().getDegrees();
     }
 
-    public void resetModulesToAbsolute() {
+    public void requestResetModulesToAbsolute() {
         for (SwerveModule module : modules) {
-            module.resetToAbsolute();
+            module.queueResetToAbsolute();
         }
     }
 

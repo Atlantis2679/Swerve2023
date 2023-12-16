@@ -40,7 +40,7 @@ public abstract class SwerveModuleIO extends IOBase{
 
     public abstract void setAngleMotorPositionRotations(double angle);
 
-    public abstract void setIntegratedAngleEncoderRotations(double degrees);
+    public abstract boolean setIntegratedEncoderAngleEncoderRotations(double degrees);
 
     public abstract void setP(double p);
 
