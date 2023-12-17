@@ -16,7 +16,7 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.commands.SwerveCommands;
 
 public class RobotContainer {
-    private final TuneablesTable swerveTunenablesCommandTable = new TuneablesTable(SendableType.LIST); 
+    private final TuneablesTable swerveTunenablesCommandTable = new TuneablesTable(SendableType.LIST);
     private final Swerve swerve = new Swerve();
     private final CommandXboxController driverController = new CommandXboxController(RobotMap.Controllers.DRIVER_PORT);
     private final SwerveCommands swerveCommands = new SwerveCommands(swerve);
@@ -32,6 +32,11 @@ public class RobotContainer {
                 () -> MathUtil.applyDeadband(-driverController.getLeftY(), 0.05),
                 () -> MathUtil.applyDeadband(driverController.getRightX(), 0.05),
                 () -> driverController.leftBumper().getAsBoolean())));
+
+        registerSwerveCommand("control modules",
+                swerveCommands.controlModules(
+                        () -> MathUtil.applyDeadband(driverController.getLeftX(), 0.1),
+                        () -> MathUtil.applyDeadband(-driverController.getLeftY(), 0.1)));
     }
 
     private TuneableCommand registerSwerveCommand(String name, TuneableCommand command) {
