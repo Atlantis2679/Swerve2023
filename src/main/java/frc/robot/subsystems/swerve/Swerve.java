@@ -89,6 +89,7 @@ public class Swerve extends SubsystemBase {
                     module.setD(d);
                 }
             });
+            builderPID.addDoubleProperty("setpoint", () -> 0, null);
         });
         tuneablesTable.addChild("Module 0", modules[0]);
         tuneablesTable.addChild("Module 1", modules[1]);
@@ -146,15 +147,19 @@ public class Swerve extends SubsystemBase {
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.FALCON_MAX_SPEED_MPS);
 
+        setModulesState(swerveModuleStates, true);
+    }
+
+    public void setModulesState(SwerveModuleState[] moduleStates, boolean preventJittering) {
         fieldsTable.recordOutput(
                 "Module Desired States",
-                swerveModuleStates[0],
-                swerveModuleStates[1],
-                swerveModuleStates[2],
-                swerveModuleStates[3]);
+                moduleStates[0],
+                moduleStates[1],
+                moduleStates[2],
+                moduleStates[3]);
 
         for (SwerveModule module : modules) {
-            module.setDesiredState(swerveModuleStates[module.getModuleNumber()], true);
+            module.setDesiredState(moduleStates[module.getModuleNumber()], preventJittering);
         }
     }
 
