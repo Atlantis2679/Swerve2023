@@ -65,8 +65,8 @@ public class SwerveModule implements Tuneable {
         final double currentAngleDegrees;
 
         if (encoderResetToAbsoluteQueued) {
-            boolean success = io.setIntegratedEncoderAngleEncoderRotations(getAbsoluteAngleDegrees() / 360);
-            currentAngleDegrees = success ? getAbsoluteAngleDegrees() : getIntegratedEncoderAngleDegrees();
+            io.setIntegratedEncoderAngleEncoderRotations(getAbsoluteAngleDegrees() / 360);
+            currentAngleDegrees = getAbsoluteAngleDegrees();
             encoderResetToAbsoluteQueued = false;
         } else {
             currentAngleDegrees = getIntegratedEncoderAngleDegrees();
@@ -120,7 +120,7 @@ public class SwerveModule implements Tuneable {
                 getRotation2d());
     }
 
-    public void setAbsoluteEncoderAngle(double degrees) {
+    public void setAbsoluteEncoderAngleDegrees(double degrees) {
         angleOffSetDegrees = (io.absoluteAngleRotations.getAsDouble() * 360) - degrees;
         queueResetToAbsolute();
     }
@@ -187,18 +187,13 @@ public class SwerveModule implements Tuneable {
 
     @Override
     public void initTuneable(TuneableBuilder builder) {
-        // builder.addChild("PID module " + getModuleNumber(), (Tuneable) (PIDBuiler) ->
-        // {
-        // PIDBuiler.setSendableType(SendableType.PID);
-        // PIDBuiler.addDoubleProperty("p", () -> io.kP.getAsDouble(), (kPUpdate) ->
-        // io.setP(kPUpdate));
-        // PIDBuiler.addDoubleProperty("i", () -> io.kI.getAsDouble(), (kIUpdate) ->
-        // io.setP(kIUpdate));
-        // PIDBuiler.addDoubleProperty("d", () -> io.kD.getAsDouble(), (kDUpdate) ->
-        // io.setP(kDUpdate));
-        // });
-        builder.addDoubleProperty("Tuneable Absolute Angle Degrees", this::getAbsoluteAngleDegrees,
-                this::setAbsoluteEncoderAngle);
-        builder.addDoubleProperty("Tuneable Offset", () -> angleOffSetDegrees, val -> angleOffSetDegrees = val);
+        builder.addDoubleProperty("Integrated Angle Degrees", this::getIntegratedEncoderAngleDegrees, null);
+        builder.addDoubleProperty("Absolute Angle Degrees", this::getAbsoluteAngleDegrees, null);
+        builder.addDoubleProperty("Tuneable Offset",
+                () -> angleOffSetDegrees,
+                val -> {
+                    angleOffSetDegrees = val;
+                    queueResetToAbsolute();
+                });
     }
 }

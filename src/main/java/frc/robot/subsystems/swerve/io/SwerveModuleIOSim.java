@@ -11,6 +11,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     private final FlywheelSim driveMotorSim;
     private final FlywheelSim angleMotorSim;
     private double simEncoderIntegratedRotations = 0;
+    private double simEncoderIntegratedRotationsDrift = 0.01;
     private double simEncoderAbsolueRotations = 0;
     private double simDriveRotations = 0;
     private final PIDController pidControllerAngle = new PIDController(10, 0, 0);
@@ -27,6 +28,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
         double angleRPS = angleMotorSim.getAngularVelocityRPM() / 60;
         double angleRotationsDiff = angleRPS * 0.02;
         simEncoderIntegratedRotations += angleRotationsDiff;
+        simEncoderIntegratedRotationsDrift += angleRotationsDiff * 0.01;
         simEncoderAbsolueRotations = simEncoderIntegratedRotations % 1;
 
         driveMotorSim.update(0.02);
@@ -52,7 +54,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
 
     @Override
     protected double getIntegratedAngleEncoderRotations() {
-        return simEncoderIntegratedRotations;
+        return simEncoderIntegratedRotations + simEncoderIntegratedRotationsDrift;
     }
 
     @Override
@@ -87,9 +89,9 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     }
 
     @Override
-    public boolean setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
+    public void setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
         simEncoderIntegratedRotations = angleRotations;
-        return true;
+        simEncoderIntegratedRotationsDrift = 0;
     }
 
     @Override

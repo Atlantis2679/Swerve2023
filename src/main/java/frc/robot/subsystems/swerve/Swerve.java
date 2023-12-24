@@ -8,6 +8,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.swerve.io.GyroIO;
 import frc.robot.subsystems.swerve.io.GyroIONavX;
@@ -17,6 +18,7 @@ import frc.lib.tuneables.SendableType;
 import frc.lib.tuneables.Tuneable;
 import frc.lib.tuneables.TuneablesManager;
 import frc.lib.tuneables.TuneablesTable;
+import frc.lib.valueholders.DoubleHolder;
 import frc.robot.Robot;
 import frc.robot.RobotMap.Module0;
 import frc.robot.RobotMap.Module1;
@@ -45,20 +47,27 @@ public class Swerve extends SubsystemBase {
             new SwerveModule(3, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
                     MODULE_3_ANGLE_OFFSET_DEGREES, fieldsTable) };
 
-    public final Translation2d FRONT_RIGHT_LOCATION = new Translation2d(SwerveContants.TRACK_WIDTH_M / 2,
-            SwerveContants.TRACK_LENGTH_M / 2);
-    public final Translation2d FRONT_LEFT_LOCATION = new Translation2d(SwerveContants.TRACK_WIDTH_M / 2,
+    // The x and y might seem a bit weird, but this is how they are defined in
+    // WPILib. For more info:
+    // https://docs.wpilib.org/he/stable/docs/software/advanced-controls/geometry/coordinate-systems.html
+    public final Translation2d FRONT_LEFT_LOCATION = new Translation2d(
+            SwerveContants.TRACK_LENGTH_M / 2,
+            SwerveContants.TRACK_WIDTH_M / 2);
+    public final Translation2d FRONT_RIGHT_LOCATION = new Translation2d(
+            SwerveContants.TRACK_LENGTH_M / 2,
+            -SwerveContants.TRACK_WIDTH_M / 2);
+    public final Translation2d BACK_LEFT_LOCATION = new Translation2d(
+            SwerveContants.TRACK_WIDTH_M / 2,
             -SwerveContants.TRACK_LENGTH_M / 2);
-    public final Translation2d BACK_RIGHT_LOCATION = new Translation2d(-SwerveContants.TRACK_WIDTH_M / 2,
-            SwerveContants.TRACK_LENGTH_M / 2);
-    public final Translation2d BACK_LEFT_LOCATION = new Translation2d(-SwerveContants.TRACK_WIDTH_M / 2,
+    public final Translation2d BACK_RIGHT_LOCATION = new Translation2d(
+            -SwerveContants.TRACK_WIDTH_M / 2,
             -SwerveContants.TRACK_LENGTH_M / 2);
 
     private final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
-            FRONT_RIGHT_LOCATION,
             FRONT_LEFT_LOCATION,
-            BACK_RIGHT_LOCATION,
-            BACK_LEFT_LOCATION);
+            FRONT_RIGHT_LOCATION,
+            BACK_LEFT_LOCATION,
+            BACK_RIGHT_LOCATION);
 
     private double lastYaw = 0;
 
@@ -96,6 +105,18 @@ public class Swerve extends SubsystemBase {
         tuneablesTable.addChild("Module 2", modules[2]);
         tuneablesTable.addChild("Module 3", modules[3]);
 
+        tuneablesTable.addChild("reset modules absolute position", (Tuneable) (builder) -> {
+            DoubleHolder angleToResetDegrees = new DoubleHolder(0);
+            builder.addDoubleProperty("angle to reset degrees", angleToResetDegrees::get, angleToResetDegrees::set);
+            builder.addChild("reset!", new InstantCommand(() -> {
+                for (SwerveModule swerveModule : modules) {
+                    swerveModule.setAbsoluteEncoderAngleDegrees(angleToResetDegrees.get());
+                }
+            }));
+        });
+
+        tuneablesTable.addChild("reset to absolute", new InstantCommand(this::requestResetModulesToAbsolute));
+
         TuneablesManager.add("Swerve", tuneablesTable);
     }
 
@@ -130,7 +151,7 @@ public class Swerve extends SubsystemBase {
     public void drive(Translation2d translation, double angularVelocity, boolean isFieldRelative) {
         ChassisSpeeds desiredChassisSpeeds;
 
-        if (!isFieldRelative) {
+        if (isFieldRelative) {
             desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
                     translation.getX(),
                     translation.getY(),

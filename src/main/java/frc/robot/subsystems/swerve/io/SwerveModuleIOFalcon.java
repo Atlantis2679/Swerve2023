@@ -3,6 +3,7 @@ package frc.robot.subsystems.swerve.io;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -16,7 +17,7 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     private final TalonFX angleMotor;
     private final CANcoder canCoder;
 
-    private final PositionDutyCycle positionDutyCycleControl = new PositionDutyCycle(0);
+    private final PositionDutyCycle anglePositionControl = new PositionDutyCycle(0);
     private final Slot0Configs slot0Configs = new Slot0Configs();
 
     public SwerveModuleIOFalcon(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
@@ -26,17 +27,25 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
         angleMotor = new TalonFX(angleMotorID);
         canCoder = new CANcoder(encoderID);
 
+        // drive motor configs
         TalonFXConfiguration driveMotorConfiguration = new TalonFXConfiguration();
+        driveMotorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        driveMotor.getConfigurator().apply(driveMotorConfiguration);
+
+        // angle motor configs
         TalonFXConfiguration angleMotorConfiguration = new TalonFXConfiguration();
+        angleMotorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        
         slot0Configs.kP = KP;
         slot0Configs.kI = KI;
         slot0Configs.kD = KD;
-        driveMotor.getConfigurator().apply(slot0Configs);
-        positionDutyCycleControl.Slot = 0;
-        CANcoderConfiguration canCoderConfiguration = new CANcoderConfiguration();
+        angleMotor.getConfigurator().apply(slot0Configs);
+        anglePositionControl.Slot = 0;
 
-        driveMotor.getConfigurator().apply(driveMotorConfiguration);
         angleMotor.getConfigurator().apply(angleMotorConfiguration);
+
+        // cancoder configs
+        CANcoderConfiguration canCoderConfiguration = new CANcoderConfiguration();
         canCoder.getConfigurator().apply(canCoderConfiguration);
     }
 
@@ -82,12 +91,12 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
     @Override
     public void setAngleMotorPositionRotations(double rotations) {
-        angleMotor.setControl(positionDutyCycleControl.withPosition(rotations * GEAR_RATIO_ANGLE));
+        angleMotor.setControl(anglePositionControl.withPosition(rotations * GEAR_RATIO_ANGLE));
     }
 
     @Override
-    public boolean setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
-        return angleMotor.setPosition(angleRotations * GEAR_RATIO_ANGLE).isOK();
+    public void setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
+        angleMotor.setPosition(angleRotations * GEAR_RATIO_ANGLE);
     }
 
     @Override
