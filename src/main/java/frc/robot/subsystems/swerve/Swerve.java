@@ -148,6 +148,12 @@ public class Swerve extends SubsystemBase {
                 modules[1].getModuleState(),
                 modules[2].getModuleState(),
                 modules[3].getModuleState());
+
+        fieldsTable.recordOutput("Module States Integreated",
+                modules[0].getModuleStateIntegreated(),
+                modules[1].getModuleStateIntegreated(),
+                modules[2].getModuleStateIntegreated(),
+                modules[3].getModuleStateIntegreated());
     }
 
     public void drive(Translation2d translation, double angularVelocity, boolean isFieldRelative) {

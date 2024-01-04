@@ -20,5 +20,5 @@ public class SwerveContants {
 
     public final static double KP = 2.8;
     public final static double KI = 0.0;
-    public final static double KD = 0.2;
+    public final static double KD = 0;
 }

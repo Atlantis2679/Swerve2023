@@ -75,9 +75,6 @@ public class SwerveModule implements Tuneable {
 
         SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(desiredState,
                 Rotation2d.fromDegrees(currentAngleDegrees));
-        // SwerveModuleState optimizedDesiredState = optimize(desiredState,
-        // currentAngleDegrees);
-        // SwerveModuleState optimizedDesiredState = desiredState;
 
         io.setDriveSpeedPrecentage(optimizedDesiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS);
         io.setAngleMotorPositionRotations(optimizedDesiredState.angle.getRotations());
@@ -105,6 +102,10 @@ public class SwerveModule implements Tuneable {
 
     public SwerveModuleState getModuleState() {
         return new SwerveModuleState(getModuleMPS(), getRotation2d());
+    }
+
+    public SwerveModuleState getModuleStateIntegreated() {
+        return new SwerveModuleState(getModuleMPS(), Rotation2d.fromDegrees(getIntegratedEncoderAngleDegrees()));
     }
 
     public double getModuleMPS() {
@@ -152,42 +153,6 @@ public class SwerveModule implements Tuneable {
 
     public void setD(double d) {
         io.setD(d);
-    }
-
-    private SwerveModuleState optimize(SwerveModuleState desiredState, double currentAngleDegrees) {
-        double targetAngleDegrees = placeInAppropriateScope(currentAngleDegrees, desiredState.angle.getDegrees());
-        double targetSpeedMPS = desiredState.speedMetersPerSecond;
-
-        double delta = targetAngleDegrees - currentAngleDegrees;
-
-        if (Math.abs(delta) > 90) {
-            targetSpeedMPS = -targetSpeedMPS;
-            targetAngleDegrees = delta > 0 ? (targetAngleDegrees - 180) : (targetAngleDegrees + 180);
-        }
-
-        return new SwerveModuleState(targetSpeedMPS, Rotation2d.fromDegrees(targetAngleDegrees));
-    }
-
-    private double placeInAppropriateScope(double currentAngleDegrees, double targetAngleDegrees) {
-        int scope = (int) currentAngleDegrees / 360;
-
-        double lowerBound = currentAngleDegrees >= 0 ? scope * 360 : (scope - 1) * 360;
-        double upperBound = currentAngleDegrees >= 0 ? (scope + 1) * 360 : scope * 360;
-
-        while (targetAngleDegrees < lowerBound) {
-            targetAngleDegrees += 360;
-        }
-        while (targetAngleDegrees > upperBound) {
-            targetAngleDegrees -= 360;
-        }
-
-        if (targetAngleDegrees - currentAngleDegrees > 180) {
-            targetAngleDegrees -= 360;
-        } else if (targetAngleDegrees - currentAngleDegrees < -180) {
-            targetAngleDegrees += 360;
-        }
-
-        return targetAngleDegrees;
     }
 
     @Override

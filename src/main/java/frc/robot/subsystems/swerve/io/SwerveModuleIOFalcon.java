@@ -6,6 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 
@@ -45,6 +46,7 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
         slot0ConfigsAngle.kI = KI;
         slot0ConfigsAngle.kD = KD;
         angleMotor.getConfigurator().apply(angleMotorConfiguration);
+        angleMotor.getRotorPosition().setUpdateFrequency(100);
 
         // cancoder configs
         CANcoderConfiguration canCoderConfiguration = new CANcoderConfiguration();
