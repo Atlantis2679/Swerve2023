@@ -1,5 +1,6 @@
 package frc.robot.subsystems.swerve;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -38,14 +39,15 @@ public class Swerve extends SubsystemBase {
     private final SwerveDriveOdometry odometry;
 
     private final SwerveModule[] modules = {
-            new SwerveModule(0, Module0.DRIVE_MOTOR_ID, Module0.ANGLE_MOTOR_ID, Module0.ENCODER_ID,
+            new SwerveModule(0, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
+                    MODULE_3_ANGLE_OFFSET_DEGREES, fieldsTable),
+            new SwerveModule(1, Module0.DRIVE_MOTOR_ID, Module0.ANGLE_MOTOR_ID, Module0.ENCODER_ID,
                     MODULE_0_ANGLE_OFFSET_DEGREES, fieldsTable),
-            new SwerveModule(1, Module1.DRIVE_MOTOR_ID, Module1.ANGLE_MOTOR_ID, Module1.ENCODER_ID,
-                    MODULE_1_ANGLE_OFFSET_DEGREES, fieldsTable),
             new SwerveModule(2, Module2.DRIVE_MOTOR_ID, Module2.ANGLE_MOTOR_ID, Module2.ENCODER_ID,
                     MODULE_2_ANGLE_OFFSET_DEGREES, fieldsTable),
-            new SwerveModule(3, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
-                    MODULE_3_ANGLE_OFFSET_DEGREES, fieldsTable) };
+            new SwerveModule(3, Module1.DRIVE_MOTOR_ID, Module1.ANGLE_MOTOR_ID, Module1.ENCODER_ID,
+                    MODULE_1_ANGLE_OFFSET_DEGREES, fieldsTable)
+    };
 
     // The x and y might seem a bit weird, but this is how they are defined in
     // WPILib. For more info:
@@ -57,8 +59,8 @@ public class Swerve extends SubsystemBase {
             SwerveContants.TRACK_LENGTH_M / 2,
             -SwerveContants.TRACK_WIDTH_M / 2);
     public final Translation2d BACK_LEFT_LOCATION = new Translation2d(
-            SwerveContants.TRACK_WIDTH_M / 2,
-            -SwerveContants.TRACK_LENGTH_M / 2);
+            -SwerveContants.TRACK_LENGTH_M / 2,
+            SwerveContants.TRACK_WIDTH_M / 2);
     public final Translation2d BACK_RIGHT_LOCATION = new Translation2d(
             -SwerveContants.TRACK_WIDTH_M / 2,
             -SwerveContants.TRACK_LENGTH_M / 2);
@@ -127,7 +129,7 @@ public class Swerve extends SubsystemBase {
         }
 
         if (gyroIO.isConnected.getAsBoolean()) {
-            odometry.update(Rotation2d.fromDegrees(gyroIO.yaw.getAsDouble()), getModulesPositions());
+            odometry.update(Rotation2d.fromDegrees(-gyroIO.yaw.getAsDouble()), getModulesPositions());
             lastYaw = gyroIO.yaw.getAsDouble();
         } else {
             Twist2d twist = swerveKinematics.toTwist2d(
@@ -136,8 +138,8 @@ public class Swerve extends SubsystemBase {
                     modules[2].getModulePositionDelta(),
                     modules[3].getModulePositionDelta());
 
-            odometry.update(Rotation2d.fromRadians(Math.toRadians(lastYaw) + twist.dtheta), getModulesPositions());
             lastYaw += Math.toDegrees(twist.dtheta);
+            odometry.update(Rotation2d.fromRadians(Math.toRadians(-lastYaw)), getModulesPositions());
         }
 
         fieldsTable.recordOutput("Odometry", odometry.getPoseMeters());
@@ -155,13 +157,13 @@ public class Swerve extends SubsystemBase {
             desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
                     translation.getX(),
                     translation.getY(),
-                    angularVelocity,
+                    -angularVelocity,
                     getRotation2d());
         } else {
             desiredChassisSpeeds = new ChassisSpeeds(
                     translation.getX(),
                     translation.getY(),
-                    angularVelocity);
+                    -angularVelocity);
         }
 
         SwerveModuleState[] swerveModuleStates = swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
@@ -186,6 +188,18 @@ public class Swerve extends SubsystemBase {
 
     public double getYaw() {
         return odometry.getPoseMeters().getRotation().getDegrees();
+    }
+
+    public void resetYaw() {
+        Pose2d currentPose = odometry.getPoseMeters();
+        System.out.println("reset!");
+        odometry.resetPosition(
+                Rotation2d.fromDegrees(gyroIO.yaw.getAsDouble()),
+                getModulesPositions(),
+                new Pose2d(
+                        currentPose.getX(),
+                        currentPose.getY(),
+                        new Rotation2d(0)));
     }
 
     public void requestResetModulesToAbsolute() {

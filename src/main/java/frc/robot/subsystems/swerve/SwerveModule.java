@@ -39,11 +39,12 @@ public class SwerveModule implements Tuneable {
         this.angleOffSetDegrees = angleOffSetDegrees;
 
         fieldsTable = swerveFieldsTable.getSubTable("Module " + moduleNumber);
-        fieldsTable.update();
 
         io = Robot.isSimulation()
                 ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID)
                 : new SwerveModuleIOFalcon(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID);
+
+        fieldsTable.update();
 
         lastDriveDistanceMeters = getDriveDistanceMeters();
         currDriveDistanceMeters = getDriveDistanceMeters();
@@ -72,7 +73,11 @@ public class SwerveModule implements Tuneable {
             currentAngleDegrees = getIntegratedEncoderAngleDegrees();
         }
 
-        SwerveModuleState optimizedDesiredState = optimize(desiredState, currentAngleDegrees);
+        SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(desiredState,
+                Rotation2d.fromDegrees(currentAngleDegrees));
+        // SwerveModuleState optimizedDesiredState = optimize(desiredState,
+        // currentAngleDegrees);
+        // SwerveModuleState optimizedDesiredState = desiredState;
 
         io.setDriveSpeedPrecentage(optimizedDesiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS);
         io.setAngleMotorPositionRotations(optimizedDesiredState.angle.getRotations());

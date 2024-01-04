@@ -4,6 +4,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -17,8 +18,8 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     private final TalonFX angleMotor;
     private final CANcoder canCoder;
 
-    private final PositionDutyCycle anglePositionControl = new PositionDutyCycle(0);
-    private final Slot0Configs slot0Configs = new Slot0Configs();
+    private final PositionDutyCycle anglePositionControl = new PositionDutyCycle(0).withSlot(0);
+    private final Slot0Configs slot0ConfigsAngle;
 
     public SwerveModuleIOFalcon(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
         super(fieldsTable);
@@ -34,14 +35,15 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
         // angle motor configs
         TalonFXConfiguration angleMotorConfiguration = new TalonFXConfiguration();
-        angleMotorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        
-        slot0Configs.kP = KP;
-        slot0Configs.kI = KI;
-        slot0Configs.kD = KD;
-        angleMotor.getConfigurator().apply(slot0Configs);
-        anglePositionControl.Slot = 0;
 
+        angleMotorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        angleMotorConfiguration.Feedback.SensorToMechanismRatio = GEAR_RATIO_ANGLE;
+        angleMotorConfiguration.ClosedLoopGeneral.ContinuousWrap = true;
+
+        slot0ConfigsAngle = angleMotorConfiguration.Slot0;
+        slot0ConfigsAngle.kP = KP;
+        slot0ConfigsAngle.kI = KI;
+        slot0ConfigsAngle.kD = KD;
         angleMotor.getConfigurator().apply(angleMotorConfiguration);
 
         // cancoder configs
@@ -71,17 +73,17 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
     @Override
     protected double getP() {
-        return slot0Configs.kP;
+        return slot0ConfigsAngle.kP;
     }
 
     @Override
     protected double getI() {
-        return slot0Configs.kI;
+        return slot0ConfigsAngle.kI;
     }
 
     @Override
     protected double getD() {
-        return slot0Configs.kD;
+        return slot0ConfigsAngle.kD;
     }
 
     @Override
@@ -91,29 +93,29 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
     @Override
     public void setAngleMotorPositionRotations(double rotations) {
-        angleMotor.setControl(anglePositionControl.withPosition(rotations * GEAR_RATIO_ANGLE));
+        angleMotor.setControl(anglePositionControl.withPosition(rotations));
     }
 
     @Override
     public void setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
-        angleMotor.setPosition(angleRotations * GEAR_RATIO_ANGLE);
+        angleMotor.setPosition(angleRotations).getName();
     }
 
     @Override
     public void setP(double p) {
-        slot0Configs.kP = p;
-        angleMotor.getConfigurator().apply(slot0Configs);
+        slot0ConfigsAngle.kP = p;
+        angleMotor.getConfigurator().apply(slot0ConfigsAngle);
     }
 
     @Override
     public void setI(double i) {
-        slot0Configs.kI = i;
-        angleMotor.getConfigurator().apply(slot0Configs);
+        slot0ConfigsAngle.kI = i;
+        angleMotor.getConfigurator().apply(slot0ConfigsAngle);
     }
 
     @Override
     public void setD(double d) {
-        slot0Configs.kD = d;
-        angleMotor.getConfigurator().apply(slot0Configs);
+        slot0ConfigsAngle.kD = d;
+        angleMotor.getConfigurator().apply(slot0ConfigsAngle);
     }
 }

@@ -29,15 +29,16 @@ public class SwerveCommands {
                 double steerX = steerXSupplier.getAsDouble();
                 double speed = speedSupplier.getAsDouble();
 
-                if (steerY != 0 || steerX != 0 || speed != 0) {
-                    SwerveModuleState[] moduleStates = new SwerveModuleState[4];
-                    for (int i = 0; i < moduleStates.length; i++) {
-                        moduleStates[i] = new SwerveModuleState(
-                                speed * SwerveContants.FALCON_MAX_SPEED_MPS,
-                                new Rotation2d(Math.atan2(steerY, steerX) + Math.toRadians(90)));
-                    }
-                    swerve.setModulesState(moduleStates, false);
+                SwerveModuleState[] moduleStates = new SwerveModuleState[4];
+                for (int i = 0; i < moduleStates.length; i++) {
+                    moduleStates[i] = new SwerveModuleState(
+                            speed * SwerveContants.FALCON_MAX_SPEED_MPS,
+                            new Rotation2d(
+                                    steerX != 0 || steerY != 0
+                                            ? Math.atan2(steerY, steerX) + Math.toRadians(90)
+                                            : 0));
                 }
+                swerve.setModulesState(moduleStates, false);
             }, swerve);
         });
     }
