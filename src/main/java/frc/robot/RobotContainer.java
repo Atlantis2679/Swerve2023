@@ -21,7 +21,7 @@ public class RobotContainer {
         swerve.setDefaultCommand(swerveCommands.controller(
                 driverController::getSquaredLeftY,
                 driverController::getSquaredLeftX,
-                driverController::getRightX,
+                new NaturalXboxController(1)::getLeftX,
                 driverController.leftBumper()::getAsBoolean));
 
         driverController.a().onTrue(new InstantCommand(swerve::resetYaw));
