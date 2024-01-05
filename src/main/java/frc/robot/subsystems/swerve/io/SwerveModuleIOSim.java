@@ -10,26 +10,27 @@ import static frc.robot.subsystems.swerve.SwerveContants.*;
 public class SwerveModuleIOSim extends SwerveModuleIO {
     private final FlywheelSim driveMotorSim;
     private final FlywheelSim angleMotorSim;
-    private double simEncoderIntegratedRotations = 0;
-    private double simEncoderIntegratedRotationsDrift = 0.01;
-    private double simEncoderAbsolueRotations = 0;
+    private double simEncoderAbsoluteRotations;
+    private double simEncoderIntegeratedRotations = 0;
     private double simDriveRotations = 0;
-    private final PIDController pidControllerAngle = new PIDController(10, 0, 0);
+    private final PIDController pidControllerAngle = new PIDController(15, 0, 0);
 
-    public SwerveModuleIOSim(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
+    public SwerveModuleIOSim(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID, double absoluteAngleOffsetDegrees) {
         super(fieldsTable);
+        
+        simEncoderAbsoluteRotations = calculateAbsolute(absoluteAngleOffsetDegrees / 360);
 
         driveMotorSim = new FlywheelSim(DCMotor.getFalcon500(1), GEAR_RATIO_DRIVE, 0.05);
         angleMotorSim = new FlywheelSim(DCMotor.getFalcon500(1), GEAR_RATIO_ANGLE, 0.004);
+        pidControllerAngle.enableContinuousInput(-0.5, 0.5);
     }
 
     @Override
     public void periodicBeforeFields() {
         double angleRPS = angleMotorSim.getAngularVelocityRPM() / 60;
-        double angleRotationsDiff = angleRPS * 0.02;
-        simEncoderIntegratedRotations += angleRotationsDiff;
-        simEncoderIntegratedRotationsDrift += angleRotationsDiff * 0.01;
-        simEncoderAbsolueRotations = simEncoderIntegratedRotations % 1;
+        double angleDiffRotations = angleRPS * 0.02;
+        simEncoderIntegeratedRotations += angleDiffRotations;
+        simEncoderAbsoluteRotations = calculateAbsolute(simEncoderAbsoluteRotations + angleDiffRotations);
 
         driveMotorSim.update(0.02);
         angleMotorSim.update(0.02);
@@ -38,13 +39,25 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
         double driveRotationsDiff = driveRPS * 0.02;
         simDriveRotations += driveRotationsDiff;
 
-        double AnglePIDResult = pidControllerAngle.calculate(getIntegratedAngleEncoderRotations());
+        double AnglePIDResult = pidControllerAngle.calculate(calculateAbsolute(simEncoderIntegeratedRotations));
         angleMotorSim.setInputVoltage(AnglePIDResult);
+    }
+
+    private final double calculateAbsolute(double rotations) {
+        while(rotations > 0.5) {
+            rotations -= 1;
+        }
+
+        while(rotations < 0.5) {
+            rotations += 1;
+        }
+
+        return rotations;
     }
 
     @Override 
     protected double getAbsoluteAngleRotations() {
-        return simEncoderAbsolueRotations;
+        return simEncoderAbsoluteRotations;
     }
 
     @Override
@@ -54,7 +67,7 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
 
     @Override
     protected double getIntegratedAngleEncoderRotations() {
-        return simEncoderIntegratedRotations + simEncoderIntegratedRotationsDrift;
+        return simEncoderIntegeratedRotations;
     }
 
     @Override
@@ -85,13 +98,12 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
 
     @Override
     public void setAngleMotorPositionRotations(double rotations) {
-        pidControllerAngle.setSetpoint(rotations);
+        pidControllerAngle.setSetpoint(calculateAbsolute(rotations));
     }
 
     @Override
     public void setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
-        simEncoderIntegratedRotations = angleRotations;
-        simEncoderIntegratedRotationsDrift = 0;
+        simEncoderIntegeratedRotations = angleRotations;
     }
 
     @Override

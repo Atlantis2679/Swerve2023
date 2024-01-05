@@ -3,7 +3,6 @@ package frc.robot.subsystems.swerve.commands;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import frc.lib.tuneables.SendableType;
 import frc.lib.tuneables.TuneableBuilder;
 import frc.lib.tuneables.TuneableCommand;
@@ -16,21 +15,21 @@ public class SwerveController extends TuneableCommand {
     private final Swerve swerve;
     private TuneablesTable tuneablesTable = new TuneablesTable(SendableType.LIST);
 
-    private DoubleSupplier xValuesSupplier;
-    private DoubleSupplier yValuesSupplier;
-    private DoubleSupplier rotationValuesSupplier;
+    private DoubleSupplier sidewaysSupplier;
+    private DoubleSupplier forwardSupplier;
+    private DoubleSupplier rotationsSupplier;
     private BooleanSupplier isFieldRelative;
 
     private DoubleHolder maxSpeedAngular = tuneablesTable.addNumber("Max Angular Speed", FALCON_MAX_SPEED_MPS);
 
-    public SwerveController(Swerve swerve, DoubleSupplier xValuesSupplier, DoubleSupplier yValuesSupplier,
-            DoubleSupplier rotationValuesSupplier, BooleanSupplier isFieldRelative) {
+    public SwerveController(Swerve swerve, DoubleSupplier forwardSupplier, DoubleSupplier sidewaysSupplier, 
+            DoubleSupplier rotationsSupplier, BooleanSupplier isFieldRelative) {
         this.swerve = swerve;
         addRequirements(swerve);
 
-        this.xValuesSupplier = xValuesSupplier;
-        this.yValuesSupplier = yValuesSupplier;
-        this.rotationValuesSupplier = rotationValuesSupplier;
+        this.sidewaysSupplier = sidewaysSupplier;
+        this.forwardSupplier = forwardSupplier;
+        this.rotationsSupplier = rotationsSupplier;
         this.isFieldRelative = isFieldRelative;
     }
 
@@ -40,20 +39,10 @@ public class SwerveController extends TuneableCommand {
 
     @Override
     public void execute() {
-        /*
-         * the x and y are swapped in the translation2d because we're using Field
-         * Coordinate system and when using this system the x from the view of the
-         * drivers is the depth of a field while the y is horizonal to the field.
-         * 
-         * for further reading:
-         * https://docs.wpilib.org/he/stable/docs/software/advanced-controls/geometry/
-         * coordinate-systems.html
-         */
         swerve.drive(
-                new Translation2d(
-                        yValuesSupplier.getAsDouble(),
-                        -1 * xValuesSupplier.getAsDouble()).times(FALCON_MAX_SPEED_MPS),
-                -1 * rotationValuesSupplier.getAsDouble() * maxSpeedAngular.get(),
+                forwardSupplier.getAsDouble() * FALCON_MAX_SPEED_MPS,
+                sidewaysSupplier.getAsDouble() * FALCON_MAX_SPEED_MPS,
+                rotationsSupplier.getAsDouble() * maxSpeedAngular.get(),
                 isFieldRelative.getAsBoolean());
     }
 

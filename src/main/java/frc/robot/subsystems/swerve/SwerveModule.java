@@ -22,7 +22,7 @@ public class SwerveModule implements Tuneable {
     private final int driveMotorID;
     private final int angleMotorID;
     private final int encoderID;
-    private double angleOffSetDegrees;
+    private double absoluteAngleOffSetDegrees;
 
     private double lastDriveDistanceMeters;
     private double currDriveDistanceMeters;
@@ -31,17 +31,17 @@ public class SwerveModule implements Tuneable {
     private final double WHEEL_CIRCUMFERENCE_METERS = 2 * Math.PI * WHEEL_RADIUS_METERS;
 
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-            double angleOffSetDegrees, LogFieldsTable swerveFieldsTable) {
+            double absoluteAngleOffSetDegrees, LogFieldsTable swerveFieldsTable) {
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
         this.angleMotorID = angleMotorID;
         this.encoderID = encoderID;
-        this.angleOffSetDegrees = angleOffSetDegrees;
+        this.absoluteAngleOffSetDegrees = absoluteAngleOffSetDegrees;
 
         fieldsTable = swerveFieldsTable.getSubTable("Module " + moduleNumber);
 
         io = Robot.isSimulation()
-                ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID)
+                ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID, absoluteAngleOffSetDegrees)
                 : new SwerveModuleIOFalcon(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID);
 
         fieldsTable.update();
@@ -85,7 +85,7 @@ public class SwerveModule implements Tuneable {
     }
 
     public double getAbsoluteAngleDegrees() {
-        return (io.absoluteAngleRotations.getAsDouble() * 360) - angleOffSetDegrees;
+        return (io.absoluteAngleRotations.getAsDouble() * 360) - absoluteAngleOffSetDegrees;
     }
 
     public int getModuleNumber() {
@@ -127,7 +127,7 @@ public class SwerveModule implements Tuneable {
     }
 
     public void setAbsoluteEncoderAngleDegrees(double degrees) {
-        angleOffSetDegrees = (io.absoluteAngleRotations.getAsDouble() * 360) - degrees;
+        absoluteAngleOffSetDegrees = (io.absoluteAngleRotations.getAsDouble() * 360) - degrees;
         queueResetToAbsolute();
     }
 
@@ -160,9 +160,9 @@ public class SwerveModule implements Tuneable {
         builder.addDoubleProperty("Integrated Angle Degrees", this::getIntegratedEncoderAngleDegrees, null);
         builder.addDoubleProperty("Absolute Angle Degrees", this::getAbsoluteAngleDegrees, null);
         builder.addDoubleProperty("Tuneable Offset",
-                () -> angleOffSetDegrees,
+                () -> absoluteAngleOffSetDegrees,
                 val -> {
-                    angleOffSetDegrees = val;
+                    absoluteAngleOffSetDegrees = val;
                     queueResetToAbsolute();
                 });
     }
