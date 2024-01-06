@@ -67,6 +67,7 @@ public class Robot extends LoggedRobot {
         }
         
         if (getIsReplay()) {
+            System.out.println("******************* Starting replay mode! *******************");
             setUseTiming(false);
             String logPath = LogFileUtil.findReplayLog();
             Logger.setReplaySource(new WPILOGReader(logPath));

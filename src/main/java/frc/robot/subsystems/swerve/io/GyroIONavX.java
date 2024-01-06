@@ -5,6 +5,7 @@ import frc.lib.logfields.LogFieldsTable;
 
 import static frc.robot.RobotMap.*;
 
+
 public class GyroIONavX extends GyroIO{
     private final AHRS navX = new AHRS(NAVX_PORT);
     
@@ -13,7 +14,7 @@ public class GyroIONavX extends GyroIO{
     }
 
     @Override 
-    protected double getYaw() {
+    protected double getYawDegreesCW() {
         return navX.getYaw();
     }
 
@@ -21,5 +22,4 @@ public class GyroIONavX extends GyroIO{
     protected boolean isConnected() {
         return navX.isConnected();
     }
-
 }

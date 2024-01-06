@@ -22,7 +22,7 @@ public class SwerveModule implements Tuneable {
     private final int driveMotorID;
     private final int angleMotorID;
     private final int encoderID;
-    private double angleOffSetDegrees;
+    private double absoluteAngleOffSetDegrees;
 
     private double lastDriveDistanceMeters;
     private double currDriveDistanceMeters;
@@ -31,19 +31,20 @@ public class SwerveModule implements Tuneable {
     private final double WHEEL_CIRCUMFERENCE_METERS = 2 * Math.PI * WHEEL_RADIUS_METERS;
 
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-            double angleOffSetDegrees, LogFieldsTable swerveFieldsTable) {
+            double absoluteAngleOffSetDegrees, LogFieldsTable swerveFieldsTable) {
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
         this.angleMotorID = angleMotorID;
         this.encoderID = encoderID;
-        this.angleOffSetDegrees = angleOffSetDegrees;
+        this.absoluteAngleOffSetDegrees = absoluteAngleOffSetDegrees;
 
         fieldsTable = swerveFieldsTable.getSubTable("Module " + moduleNumber);
-        fieldsTable.update();
 
         io = Robot.isSimulation()
-                ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID)
+                ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID, absoluteAngleOffSetDegrees)
                 : new SwerveModuleIOFalcon(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID);
+
+        fieldsTable.update();
 
         lastDriveDistanceMeters = getDriveDistanceMeters();
         currDriveDistanceMeters = getDriveDistanceMeters();
@@ -65,14 +66,15 @@ public class SwerveModule implements Tuneable {
         final double currentAngleDegrees;
 
         if (encoderResetToAbsoluteQueued) {
-            boolean success = io.setIntegratedEncoderAngleEncoderRotations(getAbsoluteAngleDegrees() / 360);
-            currentAngleDegrees = success ? getAbsoluteAngleDegrees() : getIntegratedEncoderAngleDegrees();
+            io.setIntegratedEncoderAngleEncoderRotations(getAbsoluteAngleDegrees() / 360);
+            currentAngleDegrees = getAbsoluteAngleDegrees();
             encoderResetToAbsoluteQueued = false;
         } else {
             currentAngleDegrees = getIntegratedEncoderAngleDegrees();
         }
 
-        SwerveModuleState optimizedDesiredState = optimize(desiredState, currentAngleDegrees);
+        SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(desiredState,
+                Rotation2d.fromDegrees(currentAngleDegrees));
 
         io.setDriveSpeedPrecentage(optimizedDesiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS);
         io.setAngleMotorPositionRotations(optimizedDesiredState.angle.getRotations());
@@ -83,7 +85,7 @@ public class SwerveModule implements Tuneable {
     }
 
     public double getAbsoluteAngleDegrees() {
-        return (io.absoluteAngleRotations.getAsDouble() * 360) - angleOffSetDegrees;
+        return (io.absoluteAngleRotations.getAsDouble() * 360) - absoluteAngleOffSetDegrees;
     }
 
     public int getModuleNumber() {
@@ -100,6 +102,10 @@ public class SwerveModule implements Tuneable {
 
     public SwerveModuleState getModuleState() {
         return new SwerveModuleState(getModuleMPS(), getRotation2d());
+    }
+
+    public SwerveModuleState getModuleStateIntegreated() {
+        return new SwerveModuleState(getModuleMPS(), Rotation2d.fromDegrees(getIntegratedEncoderAngleDegrees()));
     }
 
     public double getModuleMPS() {
@@ -120,8 +126,8 @@ public class SwerveModule implements Tuneable {
                 getRotation2d());
     }
 
-    public void setAbsoluteEncoderAngle(double degrees) {
-        angleOffSetDegrees = (io.absoluteAngleRotations.getAsDouble() * 360) - degrees;
+    public void setAbsoluteEncoderAngleDegrees(double degrees) {
+        absoluteAngleOffSetDegrees = (io.absoluteAngleRotations.getAsDouble() * 360) - degrees;
         queueResetToAbsolute();
     }
 
@@ -149,56 +155,15 @@ public class SwerveModule implements Tuneable {
         io.setD(d);
     }
 
-    private SwerveModuleState optimize(SwerveModuleState desiredState, double currentAngleDegrees) {
-        double targetAngleDegrees = placeInAppropriateScope(currentAngleDegrees, desiredState.angle.getDegrees());
-        double targetSpeedMPS = desiredState.speedMetersPerSecond;
-
-        double delta = targetAngleDegrees - currentAngleDegrees;
-
-        if (Math.abs(delta) > 90) {
-            targetSpeedMPS = -targetSpeedMPS;
-            targetAngleDegrees = delta > 0 ? (targetAngleDegrees - 180) : (targetAngleDegrees + 180);
-        }
-
-        return new SwerveModuleState(targetSpeedMPS, Rotation2d.fromDegrees(targetAngleDegrees));
-    }
-
-    private double placeInAppropriateScope(double currentAngleDegrees, double targetAngleDegrees) {
-        int scope = (int) currentAngleDegrees / 360;
-
-        double lowerBound = currentAngleDegrees >= 0 ? scope * 360 : (scope - 1) * 360;
-        double upperBound = currentAngleDegrees >= 0 ? (scope + 1) * 360 : scope * 360;
-
-        while (targetAngleDegrees < lowerBound) {
-            targetAngleDegrees += 360;
-        }
-        while (targetAngleDegrees > upperBound) {
-            targetAngleDegrees -= 360;
-        }
-
-        if (targetAngleDegrees - currentAngleDegrees > 180) {
-            targetAngleDegrees -= 360;
-        } else if (targetAngleDegrees - currentAngleDegrees < -180) {
-            targetAngleDegrees += 360;
-        }
-
-        return targetAngleDegrees;
-    }
-
     @Override
     public void initTuneable(TuneableBuilder builder) {
-        // builder.addChild("PID module " + getModuleNumber(), (Tuneable) (PIDBuiler) ->
-        // {
-        // PIDBuiler.setSendableType(SendableType.PID);
-        // PIDBuiler.addDoubleProperty("p", () -> io.kP.getAsDouble(), (kPUpdate) ->
-        // io.setP(kPUpdate));
-        // PIDBuiler.addDoubleProperty("i", () -> io.kI.getAsDouble(), (kIUpdate) ->
-        // io.setP(kIUpdate));
-        // PIDBuiler.addDoubleProperty("d", () -> io.kD.getAsDouble(), (kDUpdate) ->
-        // io.setP(kDUpdate));
-        // });
-        builder.addDoubleProperty("Tuneable Absolute Angle Degrees", this::getAbsoluteAngleDegrees,
-                this::setAbsoluteEncoderAngle);
-        builder.addDoubleProperty("Tuneable Offset", () -> angleOffSetDegrees, val -> angleOffSetDegrees = val);
+        builder.addDoubleProperty("Integrated Angle Degrees", this::getIntegratedEncoderAngleDegrees, null);
+        builder.addDoubleProperty("Absolute Angle Degrees", this::getAbsoluteAngleDegrees, null);
+        builder.addDoubleProperty("Tuneable Offset",
+                () -> absoluteAngleOffSetDegrees,
+                val -> {
+                    absoluteAngleOffSetDegrees = val;
+                    queueResetToAbsolute();
+                });
     }
 }
