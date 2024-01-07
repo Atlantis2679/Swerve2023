@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.swerve.io.GyroIO;
 import frc.robot.subsystems.swerve.io.GyroIONavX;
@@ -144,12 +145,12 @@ public class Swerve extends SubsystemBase implements Tuneable {
 
         SwerveModuleState[] swerveModuleStates = swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.FALCON_MAX_SPEED_MPS);
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.MAX_SPEED_MPS);
 
-        setModulesState(swerveModuleStates, true);
+        setModulesState(swerveModuleStates, true, true);
     }
 
-    public void setModulesState(SwerveModuleState[] moduleStates, boolean preventJittering) {
+    public void setModulesState(SwerveModuleState[] moduleStates, boolean preventJittering, boolean optimizeState) {
         fieldsTable.recordOutput(
                 "Module Desired States",
                 moduleStates[0],
@@ -158,7 +159,7 @@ public class Swerve extends SubsystemBase implements Tuneable {
                 moduleStates[3]);
 
         for (SwerveModule module : modules) {
-            module.setDesiredState(moduleStates[module.getModuleNumber()], preventJittering);
+            module.setDesiredState(moduleStates[module.getModuleNumber()], preventJittering, optimizeState);
         }
     }
 
@@ -241,6 +242,12 @@ public class Swerve extends SubsystemBase implements Tuneable {
                 }
             }));
         });
+
+        builder.addChild("coast mode", new RunCommand(() -> {
+            for (SwerveModule module : modules) {
+                module.enableCoastMode();
+            }
+        }).ignoringDisable(true));
 
         builder.addChild("reset to absolute", new InstantCommand(this::requestResetModulesToAbsolute));
     }

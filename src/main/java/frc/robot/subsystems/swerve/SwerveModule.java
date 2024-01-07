@@ -41,7 +41,8 @@ public class SwerveModule implements Tuneable {
         fieldsTable = swerveFieldsTable.getSubTable("Module " + moduleNumber);
 
         io = Robot.isSimulation()
-                ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID, absoluteAngleOffSetDegrees)
+                ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID,
+                        absoluteAngleOffSetDegrees)
                 : new SwerveModuleIOFalcon(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID);
 
         fieldsTable.update();
@@ -57,8 +58,8 @@ public class SwerveModule implements Tuneable {
         currDriveDistanceMeters = getDriveDistanceMeters();
     }
 
-    public void setDesiredState(SwerveModuleState desiredState, boolean preventJittering) {
-        if (preventJittering && Math.abs(desiredState.speedMetersPerSecond) < FALCON_MAX_SPEED_MPS * 0.01) {
+    public void setDesiredState(SwerveModuleState desiredState, boolean preventJittering, boolean optimizeState) {
+        if (preventJittering && Math.abs(desiredState.speedMetersPerSecond) < MAX_SPEED_MPS * 0.01) {
             io.setDriveSpeedPrecentage(0);
             return;
         }
@@ -73,15 +74,22 @@ public class SwerveModule implements Tuneable {
             currentAngleDegrees = getIntegratedEncoderAngleDegrees();
         }
 
-        SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(desiredState,
-                Rotation2d.fromDegrees(currentAngleDegrees));
+        if (optimizeState) {
+            desiredState = SwerveModuleState.optimize(
+                    desiredState,
+                    Rotation2d.fromDegrees(currentAngleDegrees));
+        }
 
-        io.setDriveSpeedPrecentage(optimizedDesiredState.speedMetersPerSecond / FALCON_MAX_SPEED_MPS);
-        io.setAngleMotorPositionRotations(optimizedDesiredState.angle.getRotations());
+        io.setDriveSpeedPrecentage(desiredState.speedMetersPerSecond / MAX_SPEED_MPS);
+        io.setAngleMotorPositionRotations(desiredState.angle.getRotations());
     }
 
     public void queueResetToAbsolute() {
         encoderResetToAbsoluteQueued = true;
+    }
+
+    public void enableCoastMode() {
+        io.coastAll();
     }
 
     public double getAbsoluteAngleDegrees() {

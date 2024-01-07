@@ -15,9 +15,10 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     private double simDriveRotations = 0;
     private final PIDController pidControllerAngle = new PIDController(15, 0, 0);
 
-    public SwerveModuleIOSim(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID, double absoluteAngleOffsetDegrees) {
+    public SwerveModuleIOSim(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID,
+            double absoluteAngleOffsetDegrees) {
         super(fieldsTable);
-        
+
         simEncoderAbsoluteRotations = calculateAbsolute(absoluteAngleOffsetDegrees / 360);
 
         driveMotorSim = new FlywheelSim(DCMotor.getFalcon500(1), GEAR_RATIO_DRIVE, 0.05);
@@ -44,18 +45,18 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     }
 
     private final double calculateAbsolute(double rotations) {
-        while(rotations > 0.5) {
+        while (rotations > 0.5) {
             rotations -= 1;
         }
 
-        while(rotations < 0.5) {
+        while (rotations < 0.5) {
             rotations += 1;
         }
 
         return rotations;
     }
 
-    @Override 
+    @Override
     protected double getAbsoluteAngleRotations() {
         return simEncoderAbsoluteRotations;
     }
@@ -107,6 +108,10 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     }
 
     @Override
+    public void coastAll() {
+    }
+
+    @Override
     public void setP(double p) {
         pidControllerAngle.setP(p);
     }
@@ -121,4 +126,3 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
         pidControllerAngle.setD(d);
     }
 }
-
