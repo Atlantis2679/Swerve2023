@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import frc.lib.tuneables.TuneableCommand;
 import frc.lib.tuneables.TuneablesManager;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.subsystems.swerve.SwerveCommands;
@@ -18,19 +19,22 @@ public class RobotContainer {
     }
 
     private void configureBindings() {
-        swerve.setDefaultCommand(swerveCommands.controller(
+        TuneableCommand driveCommand = swerveCommands.controller(
                 driverController::getSquaredLeftY,
                 driverController::getSquaredLeftX,
                 driverController::getSquaredRightX,
-                driverController.leftBumper()::getAsBoolean));
+                driverController.leftBumper().negate()::getAsBoolean);
+
+        swerve.setDefaultCommand(driveCommand);
+        TuneablesManager.add("Swerve/drive command", driveCommand.fullTuneable());
 
         driverController.a().onTrue(new InstantCommand(swerve::resetYaw));
 
-        TuneablesManager.add("Swerve/switch to modules control",
+        TuneablesManager.add("Swerve/modules control mode",
                 swerveCommands.controlModules(
                         driverController::getLeftX,
                         driverController::getLeftY,
-                        driverController::getRightX));
+                        driverController::getRightX).fullTuneable());
     }
 
     public Command getAutonomousCommand() {

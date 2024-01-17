@@ -1,6 +1,7 @@
 package frc.robot.subsystems.swerve.io;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -100,6 +101,12 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     @Override
     public void setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
         angleMotor.setPosition(angleRotations).getName();
+    }
+    
+    @Override
+    public void coastAll() {
+        driveMotor.setControl(new CoastOut());
+        angleMotor.setControl(new CoastOut());
     }
 
     @Override

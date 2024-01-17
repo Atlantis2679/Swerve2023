@@ -42,6 +42,8 @@ public abstract class SwerveModuleIO extends IOBase{
 
     public abstract void setIntegratedEncoderAngleEncoderRotations(double degrees);
 
+    public abstract void coastAll();
+
     public abstract void setP(double p);
 
     public abstract void setI(double I);
