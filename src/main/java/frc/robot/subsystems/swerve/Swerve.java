@@ -30,6 +30,8 @@ import frc.robot.RobotMap.Module3;
 
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+
 public class Swerve extends SubsystemBase implements Tuneable {
     private final LogFieldsTable fieldsTable = new LogFieldsTable(getName());
 
@@ -86,6 +88,15 @@ public class Swerve extends SubsystemBase implements Tuneable {
                 getModulesPositions());
 
         TuneablesManager.add("Swerve", (Tuneable) this);
+
+        AutoBuilder.configureHolonomic(
+            this::getPose2d,
+            this::resetOdometry,
+            this::getRobotRelativeSpeeds, 
+            this::driveRobotRelative, 
+            configs,
+            this::isRedAllince,
+            this);
     }
 
     @Override
@@ -93,9 +104,9 @@ public class Swerve extends SubsystemBase implements Tuneable {
         for (SwerveModule module : modules) {
             module.periodic();
         }
-
+        
         if (gyroIO.isConnected.getAsBoolean()) {
-            currYawDegreesCW = gyroIO.yawDegreesCW.getAsDouble();
+            currYawDegreesCW = -gyroIO.yawDegreesCW.getAsDouble();
         } else {
             Twist2d twist = swerveKinematics.toTwist2d(
                     modules[0].getModulePositionDelta(),
@@ -121,7 +132,10 @@ public class Swerve extends SubsystemBase implements Tuneable {
                 modules[2].getModuleStateIntegreated(),
                 modules[3].getModuleStateIntegreated());
 
-        fieldsTable.recordOutput("Robot Yaw Radians CWW", -Math.toRadians(getCurrYawDegreesCW()));
+        fieldsTable.recordOutput("Robot Yaw Radians CWW", Math.toRadians(getCurrYawDegreesCW()));
+        fieldsTable.recordOutput("yaw degrees cw", getCurrYawDegreesCW());
+        fieldsTable.recordOutput("odometry x", odometry.getPoseMeters().getX());
+        fieldsTable.recordOutput("odometry y", odometry.getPoseMeters().getY());
     }
 
     public void drive(double forward, double sidewaysRightPositive, double angularVelocityCW, boolean isFieldRelative) {
@@ -135,7 +149,7 @@ public class Swerve extends SubsystemBase implements Tuneable {
                     forward,
                     sidewaysLeftPositive,
                     angularVelocityCCW,
-                    Rotation2d.fromDegrees(-getCurrYawDegreesCW()));
+                    Rotation2d.fromDegrees(getCurrYawDegreesCW()));
         } else {
             desiredChassisSpeeds = new ChassisSpeeds(
                     forward,
@@ -164,6 +178,7 @@ public class Swerve extends SubsystemBase implements Tuneable {
     }
 
     private double getCurrYawDegreesCW() {
+        // return (currYawDegreesCW - yawOffsetDegreesCW) + ((currYawDegreesCW - yawOffsetDegreesCW)*((5/10) / 360));
         return currYawDegreesCW - yawOffsetDegreesCW;
     }
 
@@ -250,5 +265,41 @@ public class Swerve extends SubsystemBase implements Tuneable {
         }).ignoringDisable(true));
 
         builder.addChild("reset to absolute", new InstantCommand(this::requestResetModulesToAbsolute));
+    }
+
+    
+    public Rotation2d getRotation2d() {
+        return odometry.getPoseMeters().getRotation();
+    }
+
+    public Pose2d getPose2d() {
+        return new Pose2d(getTranslation2d(), getRotation2d());
+    }
+
+    public Translation2d getTranslation2d() {
+        return new Translation2d(odometry.getPoseMeters().getX(), odometry.getPoseMeters().getY());
+    }
+
+    public void resetOdometry(Pose2d pose2d) {
+        odometry.resetPosition(getRotation2d(), getModulesPositions(), pose2d);
+    }
+
+    public ChassisSpeeds getRobotRelativeSpeeds() {
+        return swerveKinematics.toChassisSpeeds(modules[0].getModuleState(),
+                modules[1].getModuleState(),
+                modules[2].getModuleState(),
+                modules[3].getModuleState());
+    }
+
+    public void driveRobotRelative(ChassisSpeeds speeds){
+        this.drive(speeds.vxMetersPerSecond ,speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond, false);
+      }
+
+    public boolean isRedAllince() {
+        return true;
+    }
+
+    public void resetGyro() {
+        gyroIO.resetGyro();
     }
 }

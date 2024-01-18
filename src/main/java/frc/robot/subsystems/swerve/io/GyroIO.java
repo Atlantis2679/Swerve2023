@@ -19,4 +19,7 @@ public abstract class GyroIO extends IOBase{
     protected abstract double getYawDegreesCW();
 
     protected abstract boolean isConnected();
+
+
+    public abstract void resetGyro();
 }

@@ -30,6 +30,8 @@ public class RobotContainer {
 
         driverController.a().onTrue(new InstantCommand(swerve::resetYaw));
 
+        driverController.b().onTrue(new InstantCommand(swerve::resetGyro));
+
         TuneablesManager.add("Swerve/modules control mode",
                 swerveCommands.controlModules(
                         driverController::getLeftX,
@@ -38,6 +40,8 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return Commands.print("No autonomous command configured");
+        return Autos.getOutsideOfBegginingLine(swerve);
     }
+
+
 }

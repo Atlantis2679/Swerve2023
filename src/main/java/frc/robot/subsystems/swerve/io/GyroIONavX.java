@@ -22,4 +22,9 @@ public class GyroIONavX extends GyroIO{
     protected boolean isConnected() {
         return navX.isConnected();
     }
+
+    @Override
+    public void resetGyro() {
+        navX.reset();
+    }
 }

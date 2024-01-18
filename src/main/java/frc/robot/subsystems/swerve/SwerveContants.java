@@ -1,5 +1,9 @@
 package frc.robot.subsystems.swerve;
 
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
+
 import edu.wpi.first.math.util.Units;
 
 public class SwerveContants {
@@ -21,4 +25,12 @@ public class SwerveContants {
     public final static double KP = 2.8;
     public final static double KI = 0.0;
     public final static double KD = 0;
+
+        public final static HolonomicPathFollowerConfig configs = new HolonomicPathFollowerConfig( 
+            new PIDConstants(0.0, 0.0, 0), 
+            new PIDConstants(0.5, 0.0, 0.0), 
+            2, 
+            0.2, 
+            new ReplanningConfig() 
+        );
 }
