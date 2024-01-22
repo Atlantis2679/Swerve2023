@@ -22,15 +22,14 @@ public class SwerveContants {
     public final static double MODULE_2_ABSOLUTE_ANGLE_OFFSET_DEGREES = -54.052734375;
     public final static double MODULE_3_ABSOLUTE_ANGLE_OFFSET_DEGREES = 39.462890625;
 
-    public final static double KP = 2.8;
+    public final static double KP = 1.8;
     public final static double KI = 0.0;
     public final static double KD = 0;
 
-        public final static HolonomicPathFollowerConfig configs = new HolonomicPathFollowerConfig( 
-            new PIDConstants(0.0, 0.0, 0), 
-            new PIDConstants(0.5, 0.0, 0.0), 
-            2, 
-            0.2, 
-            new ReplanningConfig() 
-        );
+    public final static HolonomicPathFollowerConfig pathFollowerConfigs = new HolonomicPathFollowerConfig(
+            new PIDConstants(0.75, 0, 0.018),
+            new PIDConstants(0.9, 0.0, 0.008),
+            1,
+            0.39028,
+            new ReplanningConfig());
 }

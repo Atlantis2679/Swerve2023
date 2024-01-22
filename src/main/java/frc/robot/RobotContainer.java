@@ -1,7 +1,6 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.tuneables.TuneableCommand;
 import frc.lib.tuneables.TuneablesManager;
@@ -30,8 +29,6 @@ public class RobotContainer {
 
         driverController.a().onTrue(new InstantCommand(swerve::resetYaw));
 
-        driverController.b().onTrue(new InstantCommand(swerve::resetGyro));
-
         TuneablesManager.add("Swerve/modules control mode",
                 swerveCommands.controlModules(
                         driverController::getLeftX,
@@ -42,6 +39,5 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         return Autos.getOutsideOfBegginingLine(swerve);
     }
-
 
 }

@@ -5,7 +5,7 @@
       "x": 2.0,
       "y": 7.0
     },
-    "rotation": 0
+    "rotation": 0.0
   },
   "command": {
     "type": "sequential",
@@ -15,6 +15,12 @@
           "type": "path",
           "data": {
             "pathName": "straightLine"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
           }
         }
       ]
