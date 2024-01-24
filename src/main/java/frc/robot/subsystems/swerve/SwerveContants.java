@@ -29,7 +29,7 @@ public class SwerveContants {
     public final static HolonomicPathFollowerConfig pathFollowerConfigs = new HolonomicPathFollowerConfig(
             new PIDConstants(0.75, 0, 0.018),
             new PIDConstants(0.9, 0.0, 0.008),
-            1,
+            4.5,
             0.39028,
             new ReplanningConfig());
 }

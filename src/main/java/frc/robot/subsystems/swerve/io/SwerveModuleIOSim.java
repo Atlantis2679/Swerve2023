@@ -98,8 +98,17 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     }
 
     @Override
+    public void setDriveSpeedVoltage(double volatge) {
+        driveMotorSim.setInputVoltage(volatge);
+    }
+    
+    @Override
     public void setAngleMotorPositionRotations(double rotations) {
         pidControllerAngle.setSetpoint(calculateAbsolute(rotations));
+    }
+    
+    @Override
+    public void setAngleMotorVoltage(double volatge) {
     }
 
     @Override
@@ -125,4 +134,5 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     public void setD(double d) {
         pidControllerAngle.setD(d);
     }
+
 }

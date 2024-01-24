@@ -26,16 +26,18 @@ public class SwerveModule implements Tuneable {
 
     private double lastDriveDistanceMeters;
     private double currDriveDistanceMeters;
+    private boolean isVoltage;
     private boolean encoderResetToAbsoluteQueued = false;
 
     private final double WHEEL_CIRCUMFERENCE_METERS = 2 * Math.PI * WHEEL_RADIUS_METERS;
 
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-            double absoluteAngleOffSetDegrees, LogFieldsTable swerveFieldsTable) {
+            double absoluteAngleOffSetDegrees, boolean isVoltage, LogFieldsTable swerveFieldsTable) {
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
         this.angleMotorID = angleMotorID;
         this.encoderID = encoderID;
+        this.isVoltage = isVoltage;
         this.absoluteAngleOffSetDegrees = absoluteAngleOffSetDegrees;
 
         fieldsTable = swerveFieldsTable.getSubTable("Module " + moduleNumber);
@@ -43,7 +45,7 @@ public class SwerveModule implements Tuneable {
         io = Robot.isSimulation()
                 ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID,
                         absoluteAngleOffSetDegrees)
-                : new SwerveModuleIOFalcon(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID);
+                : new SwerveModuleIOFalcon(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID, true);
 
         fieldsTable.update();
 
@@ -80,8 +82,18 @@ public class SwerveModule implements Tuneable {
                     Rotation2d.fromDegrees(currentAngleDegrees));
         }
 
-        io.setDriveSpeedPrecentage(desiredState.speedMetersPerSecond / MAX_SPEED_MPS);
-        io.setAngleMotorPositionRotations(desiredState.angle.getRotations());
+        if (isVoltage) {
+            io.setDriveSpeedVoltage((desiredState.speedMetersPerSecond / MAX_SPEED_MPS) * 12);
+            io.setAngleMotorVoltage(desiredState.angle.getRotations());
+        } else {
+            io.setDriveSpeedPrecentage(desiredState.speedMetersPerSecond / MAX_SPEED_MPS);
+            io.setAngleMotorPositionRotations(desiredState.angle.getRotations());
+        }
+    }
+
+    public void setDesiredStateVoltage(SwerveModuleState desiredState, boolean preventJittering,
+            boolean optimizeState) {
+
     }
 
     public void queueResetToAbsolute() {

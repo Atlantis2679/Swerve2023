@@ -30,6 +30,8 @@ import frc.robot.RobotMap.Module3;
 
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 
 public class Swerve extends SubsystemBase implements Tuneable {
@@ -44,13 +46,13 @@ public class Swerve extends SubsystemBase implements Tuneable {
     // Should be FL, FR, BL, BR
     private final SwerveModule[] modules = {
             new SwerveModule(0, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
-                    MODULE_3_ABSOLUTE_ANGLE_OFFSET_DEGREES, fieldsTable),
+                    MODULE_3_ABSOLUTE_ANGLE_OFFSET_DEGREES, true, fieldsTable),
             new SwerveModule(1, Module0.DRIVE_MOTOR_ID, Module0.ANGLE_MOTOR_ID, Module0.ENCODER_ID,
-                    MODULE_0_ABSOLUTE_ANGLE_OFFSET_DEGREES, fieldsTable),
+                    MODULE_0_ABSOLUTE_ANGLE_OFFSET_DEGREES, true, fieldsTable),
             new SwerveModule(2, Module2.DRIVE_MOTOR_ID, Module2.ANGLE_MOTOR_ID, Module2.ENCODER_ID,
-                    MODULE_2_ABSOLUTE_ANGLE_OFFSET_DEGREES, fieldsTable),
+                    MODULE_2_ABSOLUTE_ANGLE_OFFSET_DEGREES,true,  fieldsTable),
             new SwerveModule(3, Module1.DRIVE_MOTOR_ID, Module1.ANGLE_MOTOR_ID, Module1.ENCODER_ID,
-                    MODULE_1_ABSOLUTE_ANGLE_OFFSET_DEGREES, fieldsTable)
+                    MODULE_1_ABSOLUTE_ANGLE_OFFSET_DEGREES, true, fieldsTable)
     };
 
     // The x and y might seem a bit weird, but this is how they are defined in
@@ -163,11 +165,11 @@ public class Swerve extends SubsystemBase implements Tuneable {
     }
 
     public void setModulesState(SwerveModuleState[] moduleStates, boolean preventJittering, boolean optimizeState) {
-        fieldsTable.recordOutput(
+        Logger.recordOutput(
                 "Module Desired States",
                 moduleStates[0],
                 moduleStates[1],
-                moduleStates[2],
+             moduleStates[2],
                 moduleStates[3]);
 
         for (SwerveModule module : modules) {
