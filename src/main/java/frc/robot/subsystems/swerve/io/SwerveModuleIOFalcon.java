@@ -2,10 +2,11 @@ package frc.robot.subsystems.swerve.io;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.CoastOut;
-import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -19,7 +20,10 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
     private final TalonFX angleMotor;
     private final CANcoder canCoder;
 
-    private final PositionDutyCycle anglePositionControl = new PositionDutyCycle(0).withSlot(0);
+    private final PositionVoltage angleVoltagePositionControl = new PositionVoltage(0).withSlot(0);
+    private final VoltageOut driveVoltageControl = new VoltageOut(0);
+    private final DutyCycleOut drivePrecentageControl = new DutyCycleOut(0);
+
     private final Slot0Configs slot0ConfigsAngle;
 
     public SwerveModuleIOFalcon(LogFieldsTable fieldsTable, int driveMotorID, int angleMotorID, int encoderID) {
@@ -32,20 +36,33 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
         // drive motor configs
         TalonFXConfiguration driveMotorConfiguration = new TalonFXConfiguration();
         driveMotorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        driveMotor.getConfigurator().apply(driveMotorConfiguration);
+        driveMotorConfiguration.Feedback.SensorToMechanismRatio = GEAR_RATIO_DRIVE;
+        driveMotorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
+        driveMotorConfiguration.CurrentLimits.SupplyCurrentLimit = 35;
+        driveMotorConfiguration.CurrentLimits.SupplyCurrentThreshold = 60;
+        driveMotorConfiguration.CurrentLimits.SupplyTimeThreshold = 0.1;
 
+        driveMotor.getVelocity().setUpdateFrequency(100);
+        driveMotor.getPosition().setUpdateFrequency(100);
+        driveMotor.getConfigurator().apply(driveMotorConfiguration);
+        
         // angle motor configs
         TalonFXConfiguration angleMotorConfiguration = new TalonFXConfiguration();
 
         angleMotorConfiguration.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         angleMotorConfiguration.Feedback.SensorToMechanismRatio = GEAR_RATIO_ANGLE;
         angleMotorConfiguration.ClosedLoopGeneral.ContinuousWrap = true;
+        angleMotorConfiguration.CurrentLimits.SupplyCurrentLimitEnable = true;
+        angleMotorConfiguration.CurrentLimits.SupplyCurrentLimit = 25;
+        angleMotorConfiguration.CurrentLimits.SupplyCurrentThreshold = 40;
+        angleMotorConfiguration.CurrentLimits.SupplyTimeThreshold = 0.1;
 
         slot0ConfigsAngle = angleMotorConfiguration.Slot0;
-        slot0ConfigsAngle.kP = KP;
-        slot0ConfigsAngle.kI = KI;
-        slot0ConfigsAngle.kD = KD;
-        angleMotor.getRotorPosition().setUpdateFrequency(100);
+        slot0ConfigsAngle.kP = MODULE_ANGLE_KP;
+        slot0ConfigsAngle.kI = MODULE_ANGLE_KI;
+        slot0ConfigsAngle.kD = MODULE_ANGLE_KD;
+        
+        angleMotor.getPosition().setUpdateFrequency(100);
         angleMotor.getConfigurator().apply(angleMotorConfiguration);
 
         // cancoder configs
@@ -60,17 +77,17 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
     @Override
     protected double getDriveSpeedRPS() {
-        return driveMotor.getRotorVelocity().getValueAsDouble() / GEAR_RATIO_DRIVE;
+        return driveMotor.getVelocity().getValueAsDouble();
     }
 
     @Override
     protected double getDriveMotorRotations() {
-        return driveMotor.getRotorPosition().getValueAsDouble() / GEAR_RATIO_DRIVE;
+        return driveMotor.getPosition().getValueAsDouble();
     }
 
     @Override
     protected double getIntegratedAngleEncoderRotations() {
-        return angleMotor.getRotorPosition().getValueAsDouble() / GEAR_RATIO_ANGLE;
+        return angleMotor.getPosition().getValueAsDouble();
     }
 
     @Override
@@ -90,19 +107,24 @@ public class SwerveModuleIOFalcon extends SwerveModuleIO {
 
     @Override
     public void setDriveSpeedPrecentage(double demandPrcentOutput) {
-        driveMotor.set(demandPrcentOutput);
+        driveMotor.setControl(drivePrecentageControl.withOutput(demandPrcentOutput));
+    }
+
+    @Override
+    public void setDriveSpeedVoltage(double voltage) {
+        driveMotor.setControl(driveVoltageControl.withOutput(voltage));
     }
 
     @Override
     public void setAngleMotorPositionRotations(double rotations) {
-        angleMotor.setControl(anglePositionControl.withPosition(rotations));
+        angleMotor.setControl(angleVoltagePositionControl.withPosition(rotations));
     }
 
     @Override
     public void setIntegratedEncoderAngleEncoderRotations(double angleRotations) {
-        angleMotor.setPosition(angleRotations).getName();
+        angleMotor.setPosition(angleRotations);
     }
-    
+
     @Override
     public void coastAll() {
         driveMotor.setControl(new CoastOut());

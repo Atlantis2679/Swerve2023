@@ -17,4 +17,14 @@ public class GyroIOSim extends GyroIO{
     protected boolean isConnected() {
         return false;
     }
+
+    @Override
+    public void resetGyro() {
+        return;
+    }
+
+    @Override
+    public void setYaw(double degree) {
+        return;
+    }
 }

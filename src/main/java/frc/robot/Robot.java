@@ -65,7 +65,7 @@ public class Robot extends LoggedRobot {
                 Logger.recordMetadata("GitDirty", "Unknown");
                 break;
         }
-        
+
         if (getIsReplay()) {
             System.out.println("******************* Starting replay mode! *******************");
             setUseTiming(false);
