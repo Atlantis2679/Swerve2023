@@ -10,6 +10,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -106,12 +108,12 @@ public class Swerve extends SubsystemBase implements Tuneable {
                 new ReplanningConfig());
 
         AutoBuilder.configureHolonomic(
-                this::getPose2d,
-                this::resetOdometry,
+                this::getPose,
+                this::resetPose,
                 this::getRobotRelativeSpeeds,
                 this::driveVoltageChassisSpeed,
                 pathFollowerConfigs,
-                this::isRedAllince,
+                this::isRedAlliance,
                 this);
         Pathfinding.setPathfinder(new LocalADStarAK());
         PathPlannerLogging.setLogActivePathCallback(
@@ -220,19 +222,19 @@ public class Swerve extends SubsystemBase implements Tuneable {
 
     public void setCurrYawDegreesCW(double newYawDegreesCW) {
         Pose2d currentPose = odometry.getPoseMeters();
-        yawOffsetDegreesCW = currYawDegreesCW - newYawDegreesCW;
 
-        odometry.resetPosition(
-                Rotation2d.fromDegrees(-getCurrYawDegreesCW()),
-                getModulesPositions(),
-                new Pose2d(
-                        currentPose.getX(),
-                        currentPose.getY(),
-                        new Rotation2d(-newYawDegreesCW)));
+        resetPose(new Pose2d(
+                currentPose.getX(),
+                currentPose.getY(),
+                new Rotation2d(-newYawDegreesCW)));
     }
 
     public void resetYaw() {
         setCurrYawDegreesCW(0);
+    }
+
+    public Pose2d getPose() {
+        return odometry.getPoseMeters();
     }
 
     public void requestResetModulesToAbsolute() {
@@ -303,21 +305,11 @@ public class Swerve extends SubsystemBase implements Tuneable {
         builder.addChild("reset to absolute", new InstantCommand(this::requestResetModulesToAbsolute));
     }
 
-    public Rotation2d getRotation2d() {
-        return odometry.getPoseMeters().getRotation();
-    }
+    public void resetPose(Pose2d pose2d) {
+        double newYawDegreesCW = -pose2d.getRotation().getDegrees();
+        yawOffsetDegreesCW = currYawDegreesCW - newYawDegreesCW;
 
-    public Pose2d getPose2d() {
-        return new Pose2d(getTranslation2d(), getRotation2d());
-    }
-
-    public Translation2d getTranslation2d() {
-        return new Translation2d(odometry.getPoseMeters().getX(), odometry.getPoseMeters().getY());
-    }
-
-    public void resetOdometry(Pose2d pose2d) {
-        odometry.resetPosition(getRotation2d(), getModulesPositions(),
-                new Pose2d(pose2d.getX(), pose2d.getY(), pose2d.getRotation()));
+        odometry.resetPosition(Rotation2d.fromDegrees(getCurrYawDegreesCCW()), getModulesPositions(), pose2d);
     }
 
     public ChassisSpeeds getRobotRelativeSpeeds() {
@@ -327,8 +319,8 @@ public class Swerve extends SubsystemBase implements Tuneable {
                 modules[3].getModuleState());
     }
 
-    public boolean isRedAllince() {
-        return false;
+    public boolean isRedAlliance() {
+        return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
     }
 
     public void setYaw(double degrees) {
