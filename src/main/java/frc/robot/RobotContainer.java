@@ -1,8 +1,7 @@
 package frc.robot;
 
-import com.pathplanner.lib.auto.NamedCommands;
-
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.lib.tuneables.TuneableCommand;
 import frc.lib.tuneables.TuneablesManager;
@@ -17,9 +16,6 @@ public class RobotContainer {
 
     public RobotContainer() {
         configureBindings();
-        NamedCommands.registerCommand("print", Autos.print("hello world"));
-        NamedCommands.registerCommand("l", Autos.print("hi world"));
-
     }
 
     private void configureBindings() {
@@ -42,6 +38,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return Autos.getOutsideOfBegginingLine(swerve);
+        return Commands.none();
     }
 }
