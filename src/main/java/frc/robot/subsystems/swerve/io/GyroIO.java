@@ -22,4 +22,6 @@ public abstract class GyroIO extends IOBase{
 
 
     public abstract void resetGyro();
+
+    public abstract void setYaw(double degree);
 }

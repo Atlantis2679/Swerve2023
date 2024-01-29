@@ -91,11 +91,6 @@ public class SwerveModule implements Tuneable {
         }
     }
 
-    public void setDesiredStateVoltage(SwerveModuleState desiredState, boolean preventJittering,
-            boolean optimizeState) {
-
-    }
-
     public void queueResetToAbsolute() {
         encoderResetToAbsoluteQueued = true;
     }

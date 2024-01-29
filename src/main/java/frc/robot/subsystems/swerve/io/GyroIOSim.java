@@ -22,4 +22,9 @@ public class GyroIOSim extends GyroIO{
     public void resetGyro() {
         return;
     }
+
+    @Override
+    public void setYaw(double degree) {
+        return;
+    }
 }

@@ -305,4 +305,12 @@ public class Swerve extends SubsystemBase implements Tuneable {
     public boolean isRedAllince() {
         return false;
     }
+
+    public void setYaw(double degrees) {
+        gyroIO.setYaw(degrees);
+    }
+
+    public double getYaw() {
+        return gyroIO.yawDegreesCW.getAsDouble();
+    }
 }

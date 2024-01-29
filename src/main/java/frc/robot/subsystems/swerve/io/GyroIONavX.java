@@ -27,4 +27,9 @@ public class GyroIONavX extends GyroIO{
     public void resetGyro() {
         navX.reset();
     }
+
+    @Override
+    public void setYaw(double degree) {
+        navX.setAngleAdjustment(degree);
+    }
 }
