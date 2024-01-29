@@ -11,7 +11,7 @@ import frc.robot.subsystems.swerve.SwerveCommands;
 import frc.robot.utils.NaturalXboxController;
 
 public class RobotContainer {
-    public final Swerve swerve = new Swerve();
+    private final Swerve swerve = new Swerve();
     private final NaturalXboxController driverController = new NaturalXboxController(RobotMap.Controllers.DRIVER_PORT);
     private final SwerveCommands swerveCommands = new SwerveCommands(swerve);
 

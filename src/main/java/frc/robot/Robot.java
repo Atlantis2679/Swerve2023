@@ -119,8 +119,6 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
-        robotContainer.swerve.resetYaw();
-
         autonomousCommand = robotContainer.getAutonomousCommand();
 
         if (autonomousCommand != null) {
@@ -134,8 +132,6 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopInit() {
-        robotContainer.swerve.setYaw(robotContainer.swerve.getYaw());
-
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
         }
