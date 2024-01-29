@@ -40,8 +40,8 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
         double driveRotationsDiff = driveRPS * 0.02;
         simDriveRotations += driveRotationsDiff;
 
-        double AnglePIDResult = pidControllerAngle.calculate(calculateAbsolute(simEncoderIntegeratedRotations));
-        angleMotorSim.setInputVoltage(AnglePIDResult);
+        double anglePIDResult = pidControllerAngle.calculate(calculateAbsolute(simEncoderIntegeratedRotations));
+        angleMotorSim.setInputVoltage(anglePIDResult);
     }
 
     private final double calculateAbsolute(double rotations) {
@@ -98,17 +98,14 @@ public class SwerveModuleIOSim extends SwerveModuleIO {
     }
 
     @Override
-    public void setDriveSpeedVoltage(double volatge) {
-        driveMotorSim.setInputVoltage(volatge);
+    public void setDriveSpeedVoltage(double voltageDemand) {
+        voltageDemand = MathUtil.clamp(voltageDemand, -12, 12);
+        driveMotorSim.setInputVoltage(voltageDemand);
     }
-    
+
     @Override
     public void setAngleMotorPositionRotations(double rotations) {
         pidControllerAngle.setSetpoint(calculateAbsolute(rotations));
-    }
-    
-    @Override
-    public void setAngleMotorVoltage(double volatge) {
     }
 
     @Override

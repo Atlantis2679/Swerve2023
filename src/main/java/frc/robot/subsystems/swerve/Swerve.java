@@ -13,9 +13,11 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.swerve.SwerveContants.PathPlanner;
 import frc.robot.subsystems.swerve.io.GyroIO;
 import frc.robot.subsystems.swerve.io.GyroIONavX;
 import frc.robot.subsystems.swerve.io.GyroIOSim;
+import frc.robot.utils.LocalADStarAK;
 import frc.lib.logfields.LogFieldsTable;
 import frc.lib.tuneables.SendableType;
 import frc.lib.tuneables.Tuneable;
@@ -30,9 +32,12 @@ import frc.robot.RobotMap.Module3;
 
 import static frc.robot.subsystems.swerve.SwerveContants.*;
 
-import org.littletonrobotics.junction.Logger;
-
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.pathfinding.Pathfinding;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.PathPlannerLogging;
+import com.pathplanner.lib.util.ReplanningConfig;
 
 public class Swerve extends SubsystemBase implements Tuneable {
     private final LogFieldsTable fieldsTable = new LogFieldsTable(getName());
@@ -46,13 +51,13 @@ public class Swerve extends SubsystemBase implements Tuneable {
     // Should be FL, FR, BL, BR
     private final SwerveModule[] modules = {
             new SwerveModule(0, Module3.DRIVE_MOTOR_ID, Module3.ANGLE_MOTOR_ID, Module3.ENCODER_ID,
-                    MODULE_3_ABSOLUTE_ANGLE_OFFSET_DEGREES, true, fieldsTable),
+                    MODULE_3_ABSOLUTE_ANGLE_OFFSET_DEGREES, fieldsTable),
             new SwerveModule(1, Module0.DRIVE_MOTOR_ID, Module0.ANGLE_MOTOR_ID, Module0.ENCODER_ID,
-                    MODULE_0_ABSOLUTE_ANGLE_OFFSET_DEGREES, true, fieldsTable),
+                    MODULE_0_ABSOLUTE_ANGLE_OFFSET_DEGREES, fieldsTable),
             new SwerveModule(2, Module2.DRIVE_MOTOR_ID, Module2.ANGLE_MOTOR_ID, Module2.ENCODER_ID,
-                    MODULE_2_ABSOLUTE_ANGLE_OFFSET_DEGREES,true,  fieldsTable),
+                    MODULE_2_ABSOLUTE_ANGLE_OFFSET_DEGREES, fieldsTable),
             new SwerveModule(3, Module1.DRIVE_MOTOR_ID, Module1.ANGLE_MOTOR_ID, Module1.ENCODER_ID,
-                    MODULE_1_ABSOLUTE_ANGLE_OFFSET_DEGREES, true, fieldsTable)
+                    MODULE_1_ABSOLUTE_ANGLE_OFFSET_DEGREES, fieldsTable)
     };
 
     // The x and y might seem a bit weird, but this is how they are defined in
@@ -93,14 +98,31 @@ public class Swerve extends SubsystemBase implements Tuneable {
 
         resetYaw();
 
+        HolonomicPathFollowerConfig pathFollowerConfigs = new HolonomicPathFollowerConfig(
+                new PIDConstants(PathPlanner.TRANSLATION_KP, PathPlanner.TRANSLATION_KI, PathPlanner.TRANSLATION_KD),
+                new PIDConstants(PathPlanner.ROTATION_KP, PathPlanner.ROTATION_KI, PathPlanner.ROTATION_KD),
+                MAX_MODULE_SPEED,
+                TRACK_RADIUS,
+                new ReplanningConfig());
+
         AutoBuilder.configureHolonomic(
                 this::getPose2d,
                 this::resetOdometry,
                 this::getRobotRelativeSpeeds,
-                this::driveChassisSpeed,
+                this::driveVoltageChassisSpeed,
                 pathFollowerConfigs,
                 this::isRedAllince,
                 this);
+        Pathfinding.setPathfinder(new LocalADStarAK());
+        PathPlannerLogging.setLogActivePathCallback(
+                (activePath) -> {
+                    fieldsTable.recordOutput(
+                            "PathPlanner/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+                });
+        PathPlannerLogging.setLogTargetPoseCallback(
+                (targetPose) -> {
+                    fieldsTable.recordOutput("PathPlanner/TrajectorySetpoint", targetPose);
+                });
     }
 
     @Override
@@ -138,8 +160,6 @@ public class Swerve extends SubsystemBase implements Tuneable {
 
         fieldsTable.recordOutput("Robot Yaw Radians CWW", Math.toRadians(getCurrYawDegreesCCW()));
         fieldsTable.recordOutput("yaw degrees cw", getCurrYawDegreesCW());
-        fieldsTable.recordOutput("odometry x", odometry.getPoseMeters().getX());
-        fieldsTable.recordOutput("odometry y", odometry.getPoseMeters().getY());
     }
 
     public void drive(double forward, double sidewaysRightPositive, double angularVelocityCW, boolean isFieldRelative) {
@@ -161,24 +181,36 @@ public class Swerve extends SubsystemBase implements Tuneable {
                     angularVelocityCCW);
         }
 
-        driveChassisSpeed(desiredChassisSpeeds);
+        driveChassisSpeed(desiredChassisSpeeds, false);
     }
 
-    public void setModulesState(SwerveModuleState[] moduleStates, boolean preventJittering, boolean optimizeState) {
-        Logger.recordOutput(
+    public void driveChassisSpeed(ChassisSpeeds speeds, boolean useVoltage) {
+        SwerveModuleState[] swerveModuleStates = swerveKinematics.toSwerveModuleStates(speeds);
+
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.MAX_SPEED_MPS);
+
+        setModulesState(swerveModuleStates, true, true, useVoltage);
+    }
+
+    public void driveVoltageChassisSpeed(ChassisSpeeds speeds) {
+        driveChassisSpeed(speeds, true);
+    }
+
+    public void setModulesState(SwerveModuleState[] moduleStates, boolean preventJittering, boolean optimizeState,
+            boolean useVoltage) {
+        fieldsTable.recordOutput(
                 "Module Desired States",
                 moduleStates[0],
                 moduleStates[1],
-             moduleStates[2],
+                moduleStates[2],
                 moduleStates[3]);
 
         for (SwerveModule module : modules) {
-            module.setDesiredState(moduleStates[module.getModuleNumber()], preventJittering, optimizeState);
+            module.setDesiredState(moduleStates[module.getModuleNumber()], preventJittering, optimizeState, useVoltage);
         }
     }
 
     private double getCurrYawDegreesCW() {
-        // return (currYawDegreesCW - yawOffsetDegreesCW) + ((currYawDegreesCW - yawOffsetDegreesCW) * ((5 / 10) / 360));
         return currYawDegreesCW - yawOffsetDegreesCW;
     }
 
@@ -284,7 +316,8 @@ public class Swerve extends SubsystemBase implements Tuneable {
     }
 
     public void resetOdometry(Pose2d pose2d) {
-        odometry.resetPosition(getRotation2d(), getModulesPositions(), new Pose2d(pose2d.getX(), pose2d.getY(), pose2d.getRotation()));
+        odometry.resetPosition(getRotation2d(), getModulesPositions(),
+                new Pose2d(pose2d.getX(), pose2d.getY(), pose2d.getRotation()));
     }
 
     public ChassisSpeeds getRobotRelativeSpeeds() {
@@ -292,14 +325,6 @@ public class Swerve extends SubsystemBase implements Tuneable {
                 modules[1].getModuleState(),
                 modules[2].getModuleState(),
                 modules[3].getModuleState());
-    }
-
-    public void driveChassisSpeed(ChassisSpeeds speeds) {
-        SwerveModuleState[] swerveModuleStates = swerveKinematics.toSwerveModuleStates(speeds);
-
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, SwerveContants.MAX_SPEED_MPS);
-
-        setModulesState(swerveModuleStates, true, true);
     }
 
     public boolean isRedAllince() {

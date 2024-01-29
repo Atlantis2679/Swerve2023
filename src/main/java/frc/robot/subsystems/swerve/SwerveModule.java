@@ -26,18 +26,16 @@ public class SwerveModule implements Tuneable {
 
     private double lastDriveDistanceMeters;
     private double currDriveDistanceMeters;
-    private boolean isVoltage;
     private boolean encoderResetToAbsoluteQueued = false;
 
     private final double WHEEL_CIRCUMFERENCE_METERS = 2 * Math.PI * WHEEL_RADIUS_METERS;
 
     public SwerveModule(int moduleNumber, int driveMotorID, int angleMotorID, int encoderID,
-            double absoluteAngleOffSetDegrees, boolean isVoltage, LogFieldsTable swerveFieldsTable) {
+            double absoluteAngleOffSetDegrees, LogFieldsTable swerveFieldsTable) {
         this.moduleNumber = moduleNumber;
         this.driveMotorID = driveMotorID;
         this.angleMotorID = angleMotorID;
         this.encoderID = encoderID;
-        this.isVoltage = isVoltage;
         this.absoluteAngleOffSetDegrees = absoluteAngleOffSetDegrees;
 
         fieldsTable = swerveFieldsTable.getSubTable("Module " + moduleNumber);
@@ -45,7 +43,7 @@ public class SwerveModule implements Tuneable {
         io = Robot.isSimulation()
                 ? new SwerveModuleIOSim(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID,
                         absoluteAngleOffSetDegrees)
-                : new SwerveModuleIOFalcon(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID, true);
+                : new SwerveModuleIOFalcon(fieldsTable, this.driveMotorID, this.angleMotorID, this.encoderID);
 
         fieldsTable.update();
 
@@ -60,7 +58,7 @@ public class SwerveModule implements Tuneable {
         currDriveDistanceMeters = getDriveDistanceMeters();
     }
 
-    public void setDesiredState(SwerveModuleState desiredState, boolean preventJittering, boolean optimizeState) {
+    public void setDesiredState(SwerveModuleState desiredState, boolean preventJittering, boolean optimizeState, boolean useVoltage) {
         if (preventJittering && Math.abs(desiredState.speedMetersPerSecond) < MAX_SPEED_MPS * 0.01) {
             io.setDriveSpeedPrecentage(0);
             return;
@@ -82,13 +80,13 @@ public class SwerveModule implements Tuneable {
                     Rotation2d.fromDegrees(currentAngleDegrees));
         }
 
-        if (isVoltage) {
-            io.setDriveSpeedVoltage((desiredState.speedMetersPerSecond / MAX_SPEED_MPS) * 12);
-            io.setAngleMotorVoltage(desiredState.angle.getRotations());
+        if (useVoltage) {
+            io.setDriveSpeedVoltage((desiredState.speedMetersPerSecond / MAX_SPEED_MPS) * MAX_VOLTAGE);
         } else {
             io.setDriveSpeedPrecentage(desiredState.speedMetersPerSecond / MAX_SPEED_MPS);
-            io.setAngleMotorPositionRotations(desiredState.angle.getRotations());
         }
+        io.setAngleMotorPositionRotations(desiredState.angle.getRotations());
+
     }
 
     public void queueResetToAbsolute() {

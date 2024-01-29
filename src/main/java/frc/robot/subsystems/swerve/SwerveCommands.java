@@ -41,7 +41,7 @@ public class SwerveCommands {
                                             ? Math.atan2(steerY, steerX) + Math.toRadians(90)
                                             : 0));
                 }
-                swerve.setModulesState(moduleStates, false, optimizeState.get());
+                swerve.setModulesState(moduleStates, false, optimizeState.get(), false);
             }, swerve);
         });
     }
