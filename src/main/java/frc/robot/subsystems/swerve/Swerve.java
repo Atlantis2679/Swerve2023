@@ -255,6 +255,24 @@ public class Swerve extends SubsystemBase implements Tuneable {
         return modulePosition;
     }
 
+    public void resetPose(Pose2d pose2d) {
+        double newYawDegreesCW = -pose2d.getRotation().getDegrees();
+        yawOffsetDegreesCW = currYawDegreesCW - newYawDegreesCW;
+
+        odometry.resetPosition(Rotation2d.fromDegrees(getCurrYawDegreesCCW()), getModulesPositions(), pose2d);
+    }
+
+    public ChassisSpeeds getRobotRelativeSpeeds() {
+        return swerveKinematics.toChassisSpeeds(modules[0].getModuleState(),
+                modules[1].getModuleState(),
+                modules[2].getModuleState(),
+                modules[3].getModuleState());
+    }
+
+    public boolean isRedAlliance() {
+        return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+    }
+
     @Override
     public void initTuneable(TuneableBuilder builder) {
         builder.addChild("Swerve Subsystem", (Sendable) this);
@@ -303,31 +321,5 @@ public class Swerve extends SubsystemBase implements Tuneable {
         }).ignoringDisable(true));
 
         builder.addChild("reset to absolute", new InstantCommand(this::requestResetModulesToAbsolute));
-    }
-
-    public void resetPose(Pose2d pose2d) {
-        double newYawDegreesCW = -pose2d.getRotation().getDegrees();
-        yawOffsetDegreesCW = currYawDegreesCW - newYawDegreesCW;
-
-        odometry.resetPosition(Rotation2d.fromDegrees(getCurrYawDegreesCCW()), getModulesPositions(), pose2d);
-    }
-
-    public ChassisSpeeds getRobotRelativeSpeeds() {
-        return swerveKinematics.toChassisSpeeds(modules[0].getModuleState(),
-                modules[1].getModuleState(),
-                modules[2].getModuleState(),
-                modules[3].getModuleState());
-    }
-
-    public boolean isRedAlliance() {
-        return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
-    }
-
-    public void setYaw(double degrees) {
-        gyroIO.setYaw(degrees);
-    }
-
-    public double getYaw() {
-        return gyroIO.yawDegreesCW.getAsDouble();
     }
 }
